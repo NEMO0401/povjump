@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>POV Jump</title>
-<meta name="description" content="一人称視点で走って跳んでゴールをめざす、ブラウザの3Dジャンプアクション。ステージは毎回自動で作られ、8つのテーマが5ステージごとに入れかわります。">
+<meta name="description" content="一人称視点で走って跳んでゴールをめざす、ブラウザの3Dジャンプアクション。ステージは毎回自動で作られ、8つのテーマが5ステージごとに入れかわります。 A first-person 3D platformer you can play in your browser. 日本語 / English / 中文 / Español / हिन्दी">
 <meta property="og:title" content="POV Jump">
 <meta property="og:description" content="ブラウザで遊べる一人称3Dジャンプアクション。スコアを競って、ちょうせんリンクで友だちに送れます。">
 <meta property="og:type" content="website">
@@ -14,10 +14,14 @@
 <link rel="canonical" href="https://nemo0401.github.io/povjump/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="POV Jump">
-<meta name="twitter:description" content="一人称視点で走って跳ぶ、ブラウザの3Dジャンプアクション。8つの世界を駆け抜けよう。">
+<meta name="twitter:description" content="一人称視点で走って跳ぶ、ブラウザの3Dジャンプアクション。8つの世界を駆け抜けよう。 A first-person 3D platformer in your browser.">
 <meta name="twitter:image:alt" content="POV Jump のタイトルと、草原を走るゲーム画面">
 <meta property="og:site_name" content="POV Jump">
 <meta property="og:locale" content="ja_JP">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="hi_IN">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="POV Jump のタイトルと、草原を走るゲーム画面">
@@ -202,6 +206,28 @@ h2 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size
   .stunfx.on { animation: none; }
   .toast { transition: none; }
 }
+
+/* ================= ことば ================= */
+.langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.lng { font: 800 13px var(--f-body); color: var(--paper); background: rgba(255,247,227,.08); border: 0; border-radius: 999px; padding: 5px 12px; cursor: pointer; pointer-events: auto; box-shadow: inset 0 0 0 2px rgba(255,247,227,.28); }
+.lng[lang="zh-CN"] { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.lng[lang="hi"] { font-family: 'Baloo 2', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif; }
+.lng:hover { background: rgba(255,247,227,.18); }
+.lng.on { background: var(--sun); color: var(--ink); box-shadow: none; }
+.lng:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.srow.lrow { grid-template-columns: 9.5em 1fr; }
+.srow.lrow .langs { margin: 0; }
+/* 中国語・ヒンディー語は、その文字がある書体にする(ロゴと数字はドット文字のまま) */
+html[lang="zh-CN"] { --f-display: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; --f-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+html[lang="hi"] { --f-display: 'Baloo 2', 'Noto Sans Devanagari', 'Nirmala UI', 'Kohinoor Devanagari', sans-serif; --f-body: 'Baloo 2', 'Noto Sans Devanagari', 'Nirmala UI', 'Kohinoor Devanagari', sans-serif; }
+html[lang="hi"] .lab, html[lang="hi"] .eyebrow { letter-spacing: .02em; }
+h1, .val { font-family: 'DotGothic16', var(--f-display); }
+.card { position: relative; }
+.langsel { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 999px; background: rgba(255,247,227,.1); box-shadow: inset 0 0 0 2px rgba(255,247,227,.28); font-size: 13px; pointer-events: auto; }
+.langsel select { font: 800 13px var(--f-body); color: var(--paper); background: transparent; border: 0; padding: 2px 4px; cursor: pointer; }
+.langsel select option { color: #141a3a; background: #fff7e3; }
+.langsel select:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; border-radius: 6px; }
+.langsel + .eyebrow { padding-right: 128px; }
 </style>
 </head>
 <body>
@@ -210,11 +236,11 @@ h2 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size
   <div class="hud" id="hud" hidden>
     <div class="topwrap">
       <div class="top">
-        <div class="stat"><span class="lab">ステージ <span class="themetag" id="hTheme">もり</span></span><span class="val"><span id="hStage">1</span><span class="reds" id="hReds"></span></span></div>
-        <div class="stat"><span class="lab">スコア</span><span class="val" id="hScore">000000</span></div>
-        <div class="stat"><span class="lab">コイン</span><span class="val"><i class="coin"></i><span id="hCoins">00</span></span></div>
-        <div class="stat"><span class="lab">のこり</span><span class="val" id="hTime">400</span></div>
-        <div class="stat"><span class="lab">ライフ</span><span class="val" id="hLives">3</span></div>
+        <div class="stat"><span class="lab"><span data-t="ステージ">ステージ</span> <span class="themetag" id="hTheme">もり</span></span><span class="val"><span id="hStage">1</span><span class="reds" id="hReds"></span></span></div>
+        <div class="stat"><span class="lab" data-t="スコア">スコア</span><span class="val" id="hScore">000000</span></div>
+        <div class="stat"><span class="lab" data-t="コイン">コイン</span><span class="val"><i class="coin"></i><span id="hCoins">00</span></span></div>
+        <div class="stat"><span class="lab" data-t="のこり">のこり</span><span class="val" id="hTime">400</span></div>
+        <div class="stat"><span class="lab" data-t="ライフ">ライフ</span><span class="val" id="hLives">3</span></div>
         <div class="chip" id="hState" data-s="0">ちいさい</div>
       </div>
       <div class="buffs" id="buffs"></div>
@@ -225,14 +251,14 @@ h2 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size
     </div>
     <div class="cross" id="cross"></div>
     <div class="toast" id="toast"></div>
-    <div class="behind" id="behind">うしろ!</div>
+    <div class="behind" id="behind" data-t="うしろ!">うしろ!</div>
     <div class="keysbar">
-      <span><kbd>W</kbd><kbd>S</kbd>いどう</span>
-      <span><kbd>D</kbd>ジャンプ</span>
-      <span><kbd>A</kbd>+<kbd>W</kbd>ダッシュ</span>
-      <span><kbd>Z</kbd>こうげき</span>
-      <span><kbd>M</kbd>おと</span>
-      <span><kbd>Esc</kbd>ポーズ</span>
+      <span><kbd>W</kbd><kbd>S</kbd><span data-t="いどう">いどう</span></span>
+      <span><kbd>D</kbd><span data-t="ジャンプ">ジャンプ</span></span>
+      <span><kbd>A</kbd>+<kbd>W</kbd><span data-t="ダッシュ">ダッシュ</span></span>
+      <span><kbd>Z</kbd><span data-t="こうげき">こうげき</span></span>
+      <span><kbd>M</kbd><span data-t="おと">おと</span></span>
+      <span><kbd>Esc</kbd><span data-t="ポーズ">ポーズ</span></span>
     </div>
     <div class="touchui">
       <div class="stick" id="stick">
@@ -240,15 +266,15 @@ h2 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size
         <i class="knob" id="knob"></i>
       </div>
       <button class="tbtn fire off" id="tFire" type="button">こうげき</button>
-      <button class="tbtn jump" id="tJump" type="button">ジャンプ</button>
+      <button class="tbtn jump" id="tJump" type="button" data-t="ジャンプ">ジャンプ</button>
     </div>
-    <button class="pausebtn" id="tPause" type="button" aria-label="ポーズ">II</button>
+    <button class="pausebtn" id="tPause" type="button" aria-label="ポーズ" data-ta="aria-label|ポーズ">II</button>
   </div>
   <div class="tint" id="tint"></div>
   <div class="ink" id="ink"></div>
   <div class="starfx" id="starfx"></div>
   <div class="flash" id="flash"></div>
-  <div class="stunfx" id="stunfx"><span>しびれて うごけない!</span></div>
+  <div class="stunfx" id="stunfx"><span data-t="しびれて うごけない!">しびれて うごけない!</span></div>
   <div class="overlay" id="overlay"></div>
 </div>
 
@@ -265,14 +291,16 @@ const E = { stage: $('hStage'), score: $('hScore'), coins: $('hCoins'), time: $(
   bossbar: $('bossbar'), bossFill: $('bossFill'), bossName: $('bossName'), stunfx: $('stunfx'), theme: $('hTheme'), reds: $('hReds'), buffs: $('buffs'),
   behind: $('behind'), ink: $('ink'), tint: $('tint'), star: $('starfx') };
 
+/* ことばの準備より前に出るかもしれないので、ここだけは日本語と英語を並べる */
 function fatal(msg) {
   ov.hidden = false; ov.className = 'overlay center';
-  ov.innerHTML = '<div class="card"><h2>表示できませんでした</h2><p class="lead">' + msg + '</p></div>';
+  let ja = true; try { ja = /^ja/i.test(navigator.language || 'ja'); } catch (e) {}
+  ov.innerHTML = '<div class="card"><h2>' + (ja ? '表示できませんでした' : 'Could not start the game') + '</h2><p class="lead">' + (ja ? msg[0] : msg[1]) + '</p></div>';
 }
-if (typeof THREE === 'undefined') { fatal('3Dライブラリを読み込めませんでした。ページを開き直してください。'); return; }
+if (typeof THREE === 'undefined') { fatal(['3Dライブラリを読み込めませんでした。ページを開き直してください。', 'The 3D library could not be loaded. Please reload the page.']); return; }
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true }); }
-catch (err) { fatal('このブラウザでは3D表示（WebGL）が使えません。'); return; }
+catch (err) { fatal(['このブラウザでは3D表示（WebGL）が使えません。', 'This browser cannot show 3D graphics (WebGL).']); return; }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
 /* ================= three setup ================= */
@@ -374,7 +402,7 @@ function tex(size, draw, smooth) {
   t.anisotropy = maxAniso;
   return t;
 }
-const T = {
+const TX = {
   brick: tex(64, function (g) {
     g.fillStyle = '#e9a45d'; g.fillRect(0, 0, 64, 64);
     g.fillStyle = '#b8733a';
@@ -397,9 +425,9 @@ const T = {
   })
 };
 const BM = {
-  brick: new THREE.MeshLambertMaterial({ map: T.brick }),
-  q: new THREE.MeshLambertMaterial({ map: T.gold, emissive: 0x3a2a00 }),
-  used: new THREE.MeshLambertMaterial({ map: T.used })
+  brick: new THREE.MeshLambertMaterial({ map: TX.brick }),
+  q: new THREE.MeshLambertMaterial({ map: TX.gold, emissive: 0x3a2a00 }),
+  used: new THREE.MeshLambertMaterial({ map: TX.used })
 };
 
 /* ================= audio ================= */
@@ -501,6 +529,84 @@ const solids = [], shapes = [], zones = [], blocks = [], enemies = [], items = [
 let cpGem = null, cpReached = false;
 let worldTex = [], worldMats = [], worldInst = [];
 
+/* ================= ことば(多言語) ================= */
+/* 画面の文字は、日本語の文をそのまま「鍵」にして T('…') で訳す。{n} のような部分は、あとから数字などを入れる */
+/* 訳は 02_dict.js の DICT にある。訳が見つからないときは日本語のまま出す */
+const LANG_LIST = [['ja', '日本語'], ['en', 'English'], ['zh', '中文'], ['es', 'Español'], ['hi', 'हिन्दी']];
+const LANG_TAG = { ja: 'ja', en: 'en', zh: 'zh-CN', es: 'es', hi: 'hi' };
+function langOk(l) { return !!LANG_TAG[l]; }
+function detectLang() {
+  try { const q = /[?&]lang=([a-z]{2})\b/.exec(location.search || ''); if (q && langOk(q[1])) return q[1]; } catch (e) {}
+  try { const s = localStorage.getItem('povjump-lang'); if (s && langOk(s)) return s; } catch (e) {}
+  let n = 'ja';
+  try { n = String((navigator.languages && navigator.languages[0]) || navigator.language || 'ja').toLowerCase(); } catch (e) {}
+  const two = n.slice(0, 2);
+  if (langOk(two)) return two;
+  return 'en';
+}
+let LANG = detectLang();
+function T(key, v) {
+  let s = key;
+  if (LANG !== 'ja') { try { const d = DICT[LANG]; if (d && d[key]) s = d[key]; } catch (e) {} }
+  if (v) s = s.replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined && v[k] !== null ? String(v[k]) : m; });
+  return s;
+}
+function thName(th) { return T(th.name); }
+/* 言語ごとの文字(中国語とヒンディー語は、その文字が入った書体を読みこむ) */
+const LANG_FONT = {
+  zh: 'https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@500;800&display=swap',
+  hi: 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;800&display=swap'
+};
+const fontLoaded = {};
+function loadLangFont(l) {
+  if (!LANG_FONT[l] || fontLoaded[l]) return;
+  fontLoaded[l] = true;
+  try { const k = document.createElement('link'); k.rel = 'stylesheet'; k.href = LANG_FONT[l]; document.head.appendChild(k); } catch (e) {}
+}
+/* 絵(シェア画像)に文字を書くときの書体 */
+function fontRound() {
+  return LANG === 'zh' ? '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif' : LANG === 'hi' ? '"Baloo 2", "Noto Sans Devanagari", "Nirmala UI", sans-serif' : '"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif';
+}
+/* HTML に書いてある文字(data-t="鍵")を、いまの言語にする */
+function applyStatic() {
+  try {
+    document.documentElement.lang = LANG_TAG[LANG];
+    document.querySelectorAll('[data-t]').forEach(function (el) { el.textContent = T(el.getAttribute('data-t')); });
+    document.querySelectorAll('[data-ta]').forEach(function (el) { const p = el.getAttribute('data-ta').split('|'); el.setAttribute(p[0], T(p[1])); });
+  } catch (e) {}
+}
+function setLang(l) {
+  if (!langOk(l)) return;
+  LANG = l;
+  try { localStorage.setItem('povjump-lang', l); } catch (e) {}
+  loadLangFont(l); applyStatic();
+  if (typeof HC === 'object') ['st', 'th', 'fs', 'bf', 'bn'].forEach(function (k) { HC[k] = undefined; });
+}
+function langButtons() {
+  return '<div class="langs" role="group" aria-label="Language">' + LANG_LIST.map(function (p) {
+    return '<button class="lng' + (p[0] === LANG ? ' on' : '') + '" data-act="lang" data-l="' + p[0] + '" lang="' + LANG_TAG[p[0]] + '"' + (p[0] === LANG ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + p[1] + '</button>';
+  }).join('') + '</div>';
+}
+/* タイトル用: 場所をとらない言語メニュー */
+function langSelect() {
+  return '<label class="langsel"><span aria-hidden="true">🌐</span><select id="sLang" aria-label="Language">' + LANG_LIST.map(function (p) {
+    return '<option value="' + p[0] + '"' + (p[0] === LANG ? ' selected' : '') + '>' + p[1] + '</option>';
+  }).join('') + '</select></label>';
+}
+/* 日付を、その言語の書き方で */
+function fmtDate(iso) {
+  try { const a = iso.split('-'); return new Date(+a[0], +a[1] - 1, +a[2]).toLocaleDateString(LANG_TAG[LANG], { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return iso; }
+}
+loadLangFont(LANG);
+
+/* ================= 訳(tools/dict_src.py から tools/make_dict.py で作る。ここは直接書きかえない) ================= */
+const DICT = {
+  en: {"もり":"Forest","うみ":"Sea","どくのぬま":"Poison Swamp","マグマ":"Magma","やしき":"Mansion","そら":"Sky","こおり":"Ice","うちゅう":"Space","1UP! ライフが増えた":"1UP! Extra life","ファイア":"Fire","アイス":"Ice","ムチ":"Whip","バリアがまもってくれた!":"Your shield saved you!","ダメージ! ちいさくなった":"Ouch! You shrank","しびれた! 2びょう うごけない":"Zapped! Can't move for 2 s","じかんぎれ!":"Time's up!","やられた!":"Knocked out!","れんぞくふみつけ 1UP!":"Stomp combo 1UP!","れんぞく {n}!":"Combo {n}!","パワーベリー! おおきくなった":"Power Berry! You grew big","ムチボタンで攻撃":"Tap the Whip button to attack","ボタンで発射":"Tap the button to shoot","Zキーで攻撃":"Press Z to attack","Zキーで発射":"Press Z to shoot","ファイアシード!":"Fire Seed!","アイスシード! 敵をこおらせる":"Ice Seed! Freezes enemies","つるのムチ! 少し先までとどく":"Vine Whip! Reaches a little farther","にじベリー! 10びょう むてき":"Rainbow Berry! Invincible for 10 s","ダブルブーツ! 空中でもう1回ジャンプ":"Double Boots! Jump once more in midair","マント! ジャンプ長押しで ゆっくり落ちる":"Cape! Hold Jump to float down slowly","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"Mini Mushroom! Fit through small gaps. One hit and you're out","じしゃく! コインをすいよせる":"Magnet! Pulls in coins","バリア! 1回だけ攻撃をふせぐ":"Shield! Blocks one hit","スロー時計! 敵がゆっくりになる":"Slow Clock! Enemies slow down","むてきがきれた":"Invincibility wore off","ダブルブーツがきれた":"Double Boots wore off","マントがきれた":"Cape wore off","じしゃくがきれた":"Magnet wore off","もとの大きさにもどった":"Back to normal size","どくでダメージ!":"Poison damage!","赤コイン5まい コンプリート! 1UP":"All 5 red coins! 1UP","赤コイン {n} / 5":"Red coins {n} / 5","チェックポイント!":"Checkpoint!","ステージクリア!":"Stage clear!","コドラ":"Kodora","ドラゴ大王":"King Drago","ボスをたおした! ゴールへ!":"Boss defeated! Head for the goal!","ちゅうボスをたおした! ゴールへ!":"Mini-boss defeated! Head for the goal!","ボス ドラゴ大王! {how}でたおせ!":"Boss: King Drago! Beat him with {how}!","ちゅうボス コドラ! ふんづけてたおせ!":"Mini-boss Kodora! Stomp on it!","ねばねば! しばらくジャンプが低くなる":"Sticky! Your jumps are lower for a while","すみをかけられた!":"Splashed with ink!","かくし部屋! コインを集めて、おくの土管から出よう":"Secret room! Grab the coins and leave through the pipe at the back","もとの道にもどった!":"Back on the main path!","ミニ":"Mini","おおきい":"Big","ちいさい":"Small"," ・":" · ","きょうのステージ":"Today's Stage","ちょうせん":"Challenge","こうげき":"Attack","むてき":"Invincible","ブーツ":"Boots","マント":"Cape","じしゃく":"Magnet","スロー":"Slow","ねばねば":"Sticky","バリア":"Shield","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"You can now choose the language (日本語, English, 中文, Español, हिन्दी)","敵・アイテム・しかけの3Dモデルを新しくしました":"New 3D models for enemies, items and traps","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"The game was renamed from \"Pyon Run\" to \"POV Jump\"","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"Sharing on X now adds an image with your score and #gamedev","ちょうせんリンクがバージョンに対応しました":"Challenge links now include the game version","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"Added 8 worlds, corners and forks, plus new enemies, items and traps","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"Added Today's Stage, challenge links and ghosts","アップデートしました（バージョン {v}）":"Updated (version {v})","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #indiegame","きょうのステージ（{t}）":"Today's Stage ({t})","ステージ{n}（{t}）":"Stage {n} ({t})","POV Jumpで{h}をクリア！":"I cleared {h} in POV Jump!","スコア {s}":"Score {s}","（赤コイン5まい！）":" (all 5 red coins!)","このステージに挑戦してね":"Can you beat this stage?","コピーしました":"Copied","コピーできませんでした":"Couldn't copy","きょうのステージ クリア!":"Today's Stage clear!","ステージ {n} クリア!":"Stage {n} clear!","{t} のステージ":"{t} world","スコア":"Score","コイン {c}   赤コイン {r}/5":"Coins {c}   Red coins {r}/5","タイム {t}びょう":"Time {t} s","コイン {c}  ・  赤コイン {r}/5":"Coins {c}  ·  Red coins {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"The X post window is open. Save the image with \"Save image\" and attach it.","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"Image copied. Paste it into the X post window (⌘V / Ctrl+V) to attach it.","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"The X post window is open. Save the image with \"Save image\" below and attach it.","シェアしました。":"Shared.","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"Sharing isn't available here. Use \"Share on X\" or \"Save image\".","前へ / 後ろへ":"Forward / Back","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"Jump (hold to go higher; press just before landing on an enemy for a big jump)","ダッシュ（Sでも走れます）":"Dash (S works too)","こうげき（ファイア・アイス・ムチを取ると使えます）":"Attack (after you get Fire, Ice or Whip)","マウス":"Mouse","見まわす（矢印キーでも見まわせます）":"Look around (arrow keys work too)","左スティック":"Left stick","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"Put your finger on the circle and slide to move. Push all the way to the edge to dash","ジャンプ":"Jump","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"Hold for a higher jump. Press just before landing on an enemy for a big jump","ファイア・アイス・ムチを取ると使えます":"Available after you get Fire, Ice or Whip","なぞる":"Swipe","画面をなぞって見まわします":"Swipe the screen to look around","水に入ると、動きがおそくなります。":"Water slows you down.","毒の水たまりに長くいると、ダメージを受けます。":"Staying in poison pools too long hurts you.","マグマに落ちるとミス。ほのおの噴き出しに注意。":"Falling into magma costs a life. Watch out for flame jets.","暗い屋敷。ライトで照らして進みます。":"A dark mansion. Light your way as you go.","トランポリンで、空の高い足場へ行けます。":"Trampolines take you up to high platforms in the sky.","氷の床はすべります。":"Icy floors are slippery.","重力が弱く、高く跳べます。":"Low gravity lets you jump high.","ここから「{t}」のステージ。":"The {t} world starts here.","ゴール前に、ちゅうボスがまっています。":"A mini-boss waits before the goal.","ゴール前に、ボスがまっています。":"The boss waits before the goal.","ちょうせんが とどいています":"You've been challenged!","ステージ {n}（{t}）":"Stage {n} ({t})","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"The game has been updated, so this stage may look a little different from when it was sent.","このステージに ちょうせん":"Take the challenge","・":", ","FPS ジャンプアクション":"First-person 3D platformer","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"Run and jump in first person to reach the goal. Every stage is generated fresh, and the world changes every 5 stages: {w}.","はじめる":"Start","せってい":"Settings","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"Couldn't load the character models, so simple shapes are shown instead.","キャラクターを読みこみ中…":"Loading characters…","横向きにすると遊びやすくなります。":"Turn your phone sideways for easier play.","Enter キーでも始められます。":"You can also press Enter to start.","バージョン {v}（{d} 更新）":"Version {v} (updated {d})","ハイスコア {s}":"High score {s}","とうたつステージ {n}":"Best stage {n}","きょうのステージは {n}（{t}）":"Today's Stage: {n} ({t})","ポーズ":"Pause","つづける":"Continue","ステージ1から":"From Stage 1","タイトルへ":"Title screen","ことば":"Language","おんりょう":"Volume","ミュート":"Mute","視点のかんど":"Look sensitivity","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"Look sensitivity affects the mouse, swiping and the arrow keys. Higher numbers turn faster.","もどる":"Back","ゲームオーバー":"Game Over","とうたつステージ":"Stage reached","コイン":"Coins","R キーでも再挑戦できます。":"Press R to try again.","タイム":"Time","{t}びょう":"{t} s","じこベスト":"Personal best","きょうのステージ {n}（{t}）":"Today's Stage {n} ({t})","クリア!":"Clear!","自己ベスト!":"New best!","タイムボーナス":"Time bonus","赤コイン":"Red coins","ハイスコア":"High score","ステージ {n} へ":"To Stage {n}","このゲームを広める":"Spread the word","Xでシェア（画像つき）":"Share on X (with image)","スマホで画像つきシェア":"Share with image (phone)","リンクをコピー":"Copy link","シェアする画像":"Image to share","スコアの入った画像と、{tags} のハッシュタグが付きます。":"Your post gets an image with your score and the hashtags {tags}.","画像を保存":"Save image","ストーリーズ用（縦長）":"For Stories (vertical)","Enter キーでも進めます。R キーでステージ1から。":"Press Enter to continue, or R to restart from Stage 1.","きょうのステージ {n}「{t}」スタート!":"Today's Stage {n}: {t}. Go!","ステージ {n}「{t}」スタート!":"Stage {n}: {t}. Go!","ボスせん":"Boss battle","ちゅうボスせん":"Mini-boss battle","画面をなぞって見まわせます":"Swipe the screen to look around","矢印キーかドラッグで見まわせます":"Use the arrow keys or drag to look around","チェックポイントからやりなおし":"Restarting from the checkpoint","もういちど!":"Try again!","クリア記念の画像":"Stage clear keepsake","インスタグラムのストーリーズなどに使えます。":"Great for Instagram Stories and more.","画像を作れませんでした。":"Couldn't create the image.","保存しました。":"Saved.","保存をやめました。":"Save canceled.","少し待ってから、もう一度押してください。":"Please wait a moment and try again.","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"Can't save in this app. Open the game in a browser or on a computer.","画像を長押し（パソコンは右クリック）で保存してください。":"Long-press the image (right-click on a computer) to save it.","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"Saved. If it didn't work, long-press (or right-click) the image to save it.","おと: オフ":"Sound: Off","おと: オン":"Sound: On","ステージ":"Stage","のこり":"Time","ライフ":"Lives","うしろ!":"Behind you!","いどう":"Move","ダッシュ":"Dash","おと":"Sound","しびれて うごけない!":"Zapped! Can't move!"},
+  zh: {"もり":"森林","うみ":"大海","どくのぬま":"毒沼","マグマ":"岩浆","やしき":"古宅","そら":"天空","こおり":"冰原","うちゅう":"宇宙","1UP! ライフが増えた":"1UP！生命+1","ファイア":"火焰","アイス":"冰冻","ムチ":"鞭子","バリアがまもってくれた!":"护盾保护了你！","ダメージ! ちいさくなった":"受伤了！变小了","しびれた! 2びょう うごけない":"被电麻了！2秒内不能动","じかんぎれ!":"时间到！","やられた!":"被打倒了！","れんぞくふみつけ 1UP!":"连续踩踏 1UP！","れんぞく {n}!":"{n} 连击！","パワーベリー! おおきくなった":"力量浆果！变大了","ムチボタンで攻撃":"按鞭子按钮攻击","ボタンで発射":"按按钮发射","Zキーで攻撃":"按 Z 键攻击","Zキーで発射":"按 Z 键发射","ファイアシード!":"火焰种子！","アイスシード! 敵をこおらせる":"冰冻种子！能冻住敌人","つるのムチ! 少し先までとどく":"藤蔓鞭！能打到稍远的地方","にじベリー! 10びょう むてき":"彩虹浆果！10秒无敌","ダブルブーツ! 空中でもう1回ジャンプ":"二段跳靴！能在空中再跳一次","マント! ジャンプ長押しで ゆっくり落ちる":"斗篷！长按跳跃能慢慢落下","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"迷你蘑菇！能钻过小缝隙。被碰到一次就失败","じしゃく! コインをすいよせる":"磁铁！能吸引金币","バリア! 1回だけ攻撃をふせぐ":"护盾！能挡住一次攻击","スロー時計! 敵がゆっくりになる":"慢速时钟！敌人变慢了","むてきがきれた":"无敌结束了","ダブルブーツがきれた":"二段跳靴失效了","マントがきれた":"斗篷失效了","じしゃくがきれた":"磁铁失效了","もとの大きさにもどった":"恢复原来的大小了","どくでダメージ!":"中毒受伤！","赤コイン5まい コンプリート! 1UP":"集齐5枚红色金币！1UP","赤コイン {n} / 5":"红色金币 {n} / 5","チェックポイント!":"检查点！","ステージクリア!":"过关！","コドラ":"小德拉","ドラゴ大王":"德拉戈大王","ボスをたおした! ゴールへ!":"打倒了首领！前往终点！","ちゅうボスをたおした! ゴールへ!":"打倒了中头目！前往终点！","ボス ドラゴ大王! {how}でたおせ!":"首领 德拉戈大王！用{how}打倒他！","ちゅうボス コドラ! ふんづけてたおせ!":"中头目 小德拉！踩扁它！","ねばねば! しばらくジャンプが低くなる":"被黏住了！一段时间内跳不高","すみをかけられた!":"被喷了墨汁！","かくし部屋! コインを集めて、おくの土管から出よう":"隐藏房间！收集金币，从里面的水管出去吧","もとの道にもどった!":"回到原来的路了！","ミニ":"迷你","おおきい":"大","ちいさい":"小"," ・":" · ","きょうのステージ":"今日关卡","ちょうせん":"挑战","こうげき":"攻击","むてき":"无敌","ブーツ":"靴子","マント":"斗篷","じしゃく":"磁铁","スロー":"慢速","ねばねば":"黏黏","バリア":"护盾","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"现在可以选择语言了（日本語・English・中文・Español・हिन्दी）","敵・アイテム・しかけの3Dモデルを新しくしました":"敌人、道具和机关换上了新的3D模型","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"游戏名称从「ぴょんラン」改为「POV Jump」","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"在X上分享时会附上带分数的图片和 #gamedev 标签","ちょうせんリンクがバージョンに対応しました":"挑战链接现在会记录游戏版本","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"新增8个主题、弯道和岔路，以及新的敌人、道具和机关","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"新增今日关卡、挑战链接和幽灵","アップデートしました（バージョン {v}）":"已更新（版本 {v}）","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #独立游戏","きょうのステージ（{t}）":"今日关卡（{t}）","ステージ{n}（{t}）":"第{n}关（{t}）","POV Jumpで{h}をクリア！":"我在 POV Jump 通过了{h}！","スコア {s}":"得分 {s}","（赤コイン5まい！）":"（集齐5枚红色金币！）","このステージに挑戦してね":"来挑战这个关卡吧","コピーしました":"已复制","コピーできませんでした":"复制失败","きょうのステージ クリア!":"今日关卡通过！","ステージ {n} クリア!":"第{n}关通过！","{t} のステージ":"{t}关卡","スコア":"得分","コイン {c}   赤コイン {r}/5":"金币 {c}   红色金币 {r}/5","タイム {t}びょう":"用时 {t} 秒","コイン {c}  ・  赤コイン {r}/5":"金币 {c}  ·  红色金币 {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"已打开X的发帖页面。可以用「保存图片」保存后附上。","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"图片已复制。在X的发帖页面粘贴（⌘V / Ctrl+V）即可附上图片。","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"已打开X的发帖页面。请用下方的「保存图片」保存后附上。","シェアしました。":"已分享。","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"此页面无法使用分享菜单。请使用「分享到X」或「保存图片」。","前へ / 後ろへ":"前进 / 后退","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"跳跃（长按跳得更高。踩到敌人前一刻按下能大跳）","ダッシュ（Sでも走れます）":"冲刺（按 S 也能跑）","こうげき（ファイア・アイス・ムチを取ると使えます）":"攻击（拿到火焰、冰冻或鞭子后可用）","マウス":"鼠标","見まわす（矢印キーでも見まわせます）":"环顾四周（方向键也可以）","左スティック":"左摇杆","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"手指放在圆形区域上前后左右滑动来移动。推到最外侧就会冲刺","ジャンプ":"跳跃","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"按住能跳得更高。踩到敌人前一刻按下能大跳","ファイア・アイス・ムチを取ると使えます":"拿到火焰、冰冻或鞭子后可用","なぞる":"滑动","画面をなぞって見まわします":"滑动屏幕环顾四周","水に入ると、動きがおそくなります。":"进入水中后移动会变慢。","毒の水たまりに長くいると、ダメージを受けます。":"在毒水坑里待太久会受伤。","マグマに落ちるとミス。ほのおの噴き出しに注意。":"掉进岩浆就会失败。小心喷出的火焰。","暗い屋敷。ライトで照らして進みます。":"昏暗的古宅。用灯光照亮前进。","トランポリンで、空の高い足場へ行けます。":"用蹦床能到达空中的高台。","氷の床はすべります。":"冰面很滑。","重力が弱く、高く跳べます。":"重力很弱，能跳得很高。","ここから「{t}」のステージ。":"从这里开始是「{t}」关卡。","ゴール前に、ちゅうボスがまっています。":"终点前有中头目在等着。","ゴール前に、ボスがまっています。":"终点前有首领在等着。","ちょうせんが とどいています":"你收到了挑战！","ステージ {n}（{t}）":"第{n}关（{t}）","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"游戏已更新，关卡形状和发送时略有不同。","このステージに ちょうせん":"挑战这个关卡","・":"、","FPS ジャンプアクション":"第一人称跳跃动作游戏","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"以第一人称视角奔跑、跳跃，冲向终点。关卡每次都会自动生成，每5关场景就会变换：{w}。","はじめる":"开始","せってい":"设置","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"角色模型加载失败，将用简单的形状显示。","キャラクターを読みこみ中…":"正在加载角色…","横向きにすると遊びやすくなります。":"横屏游玩更方便。","Enter キーでも始められます。":"也可以按 Enter 键开始。","バージョン {v}（{d} 更新）":"版本 {v}（{d} 更新）","ハイスコア {s}":"最高分 {s}","とうたつステージ {n}":"最远关卡 {n}","きょうのステージは {n}（{t}）":"今日关卡：第{n}关（{t}）","ポーズ":"暂停","つづける":"继续","ステージ1から":"从第1关开始","タイトルへ":"返回标题","ことば":"语言","おんりょう":"音量","ミュート":"静音","視点のかんど":"视角灵敏度","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"视角灵敏度对鼠标、滑动屏幕和方向键都有效。数值越大，转向越快。","もどる":"返回","ゲームオーバー":"游戏结束","とうたつステージ":"到达关卡","コイン":"金币","R キーでも再挑戦できます。":"也可以按 R 键重新挑战。","タイム":"用时","{t}びょう":"{t} 秒","じこベスト":"个人最佳","きょうのステージ {n}（{t}）":"今日关卡 第{n}关（{t}）","クリア!":"通关！","自己ベスト!":"刷新个人最佳！","タイムボーナス":"时间奖励","赤コイン":"红色金币","ハイスコア":"最高分","ステージ {n} へ":"前往第{n}关","このゲームを広める":"分享这个游戏","Xでシェア（画像つき）":"分享到X（附图片）","スマホで画像つきシェア":"手机分享（附图片）","リンクをコピー":"复制链接","シェアする画像":"要分享的图片","スコアの入った画像と、{tags} のハッシュタグが付きます。":"会附上带分数的图片和 {tags} 标签。","画像を保存":"保存图片","ストーリーズ用（縦長）":"快拍用（竖版）","Enter キーでも進めます。R キーでステージ1から。":"按 Enter 键继续。按 R 键从第1关开始。","きょうのステージ {n}「{t}」スタート!":"今日关卡 第{n}关「{t}」开始！","ステージ {n}「{t}」スタート!":"第{n}关「{t}」开始！","ボスせん":"首领战","ちゅうボスせん":"中头目战","画面をなぞって見まわせます":"滑动屏幕可以环顾四周","矢印キーかドラッグで見まわせます":"用方向键或拖动来环顾四周","チェックポイントからやりなおし":"从检查点重新开始","もういちど!":"再来一次！","クリア記念の画像":"通关纪念图片","インスタグラムのストーリーズなどに使えます。":"可用于 Instagram 快拍等。","画像を作れませんでした。":"无法生成图片。","保存しました。":"已保存。","保存をやめました。":"已取消保存。","少し待ってから、もう一度押してください。":"请稍等片刻再按一次。","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"此应用无法保存。请在浏览器或电脑上打开。","画像を長押し（パソコンは右クリック）で保存してください。":"请长按图片（电脑上右键）保存。","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"已保存。如果没有成功，请长按图片（或右键）保存。","おと: オフ":"声音：关","おと: オン":"声音：开","ステージ":"关卡","のこり":"剩余","ライフ":"生命","うしろ!":"小心身后！","いどう":"移动","ダッシュ":"冲刺","おと":"声音","しびれて うごけない!":"被电麻了，动不了！"},
+  es: {"もり":"Bosque","うみ":"Mar","どくのぬま":"Pantano tóxico","マグマ":"Magma","やしき":"Mansión","そら":"Cielo","こおり":"Hielo","うちゅう":"Espacio","1UP! ライフが増えた":"¡1UP! Vida extra","ファイア":"Fuego","アイス":"Hielo","ムチ":"Látigo","バリアがまもってくれた!":"¡El escudo te protegió!","ダメージ! ちいさくなった":"¡Auch! Te encogiste","しびれた! 2びょう うごけない":"¡Electrocutado! No puedes moverte 2 s","じかんぎれ!":"¡Se acabó el tiempo!","やられた!":"¡Te derrotaron!","れんぞくふみつけ 1UP!":"¡Combo de pisotones 1UP!","れんぞく {n}!":"¡Combo {n}!","パワーベリー! おおきくなった":"¡Baya de poder! Ahora eres grande","ムチボタンで攻撃":"Toca el botón de látigo para atacar","ボタンで発射":"Toca el botón para disparar","Zキーで攻撃":"Pulsa Z para atacar","Zキーで発射":"Pulsa Z para disparar","ファイアシード!":"¡Semilla de fuego!","アイスシード! 敵をこおらせる":"¡Semilla de hielo! Congela a los enemigos","つるのムチ! 少し先までとどく":"¡Látigo de enredadera! Llega un poco más lejos","にじベリー! 10びょう むてき":"¡Baya arcoíris! Invencible 10 s","ダブルブーツ! 空中でもう1回ジャンプ":"¡Botas dobles! Salta otra vez en el aire","マント! ジャンプ長押しで ゆっくり落ちる":"¡Capa! Mantén el salto para caer despacio","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"¡Mini champiñón! Pasas por huecos pequeños. Un golpe y pierdes","じしゃく! コインをすいよせる":"¡Imán! Atrae las monedas","バリア! 1回だけ攻撃をふせぐ":"¡Escudo! Bloquea un golpe","スロー時計! 敵がゆっくりになる":"¡Reloj lento! Los enemigos van más despacio","むてきがきれた":"Se acabó la invencibilidad","ダブルブーツがきれた":"Se acabaron las botas dobles","マントがきれた":"Se acabó la capa","じしゃくがきれた":"Se acabó el imán","もとの大きさにもどった":"Volviste a tu tamaño normal","どくでダメージ!":"¡Daño por veneno!","赤コイン5まい コンプリート! 1UP":"¡Las 5 monedas rojas! 1UP","赤コイン {n} / 5":"Monedas rojas {n} / 5","チェックポイント!":"¡Punto de control!","ステージクリア!":"¡Nivel superado!","コドラ":"Kodora","ドラゴ大王":"Rey Drago","ボスをたおした! ゴールへ!":"¡Jefe derrotado! ¡A la meta!","ちゅうボスをたおした! ゴールへ!":"¡Minijefe derrotado! ¡A la meta!","ボス ドラゴ大王! {how}でたおせ!":"¡Jefe: Rey Drago! ¡Derrótalo con {how}!","ちゅうボス コドラ! ふんづけてたおせ!":"¡Minijefe Kodora! ¡Písalo!","ねばねば! しばらくジャンプが低くなる":"¡Pegajoso! Saltarás menos por un rato","すみをかけられた!":"¡Te echaron tinta!","かくし部屋! コインを集めて、おくの土管から出よう":"¡Sala secreta! Recoge las monedas y sal por la tubería del fondo","もとの道にもどった!":"¡De vuelta al camino!","ミニ":"Mini","おおきい":"Grande","ちいさい":"Pequeño"," ・":" · ","きょうのステージ":"Nivel del día","ちょうせん":"Desafío","こうげき":"Atacar","むてき":"Invencible","ブーツ":"Botas","マント":"Capa","じしゃく":"Imán","スロー":"Lento","ねばねば":"Pegajoso","バリア":"Escudo","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"Ahora puedes elegir el idioma (日本語, English, 中文, Español, हिन्दी)","敵・アイテム・しかけの3Dモデルを新しくしました":"Nuevos modelos 3D para enemigos, objetos y trampas","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"El juego cambió de nombre: de \"Pyon Run\" a \"POV Jump\"","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"Al compartir en X se añade una imagen con tu puntuación y #gamedev","ちょうせんリンクがバージョンに対応しました":"Los enlaces de desafío ahora indican la versión","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"Se añadieron 8 mundos, curvas y bifurcaciones, y nuevos enemigos, objetos y trampas","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"Se añadieron el nivel del día, los enlaces de desafío y los fantasmas","アップデートしました（バージョン {v}）":"Actualizado (versión {v})","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #videojuegos","きょうのステージ（{t}）":"el nivel del día ({t})","ステージ{n}（{t}）":"el nivel {n} ({t})","POV Jumpで{h}をクリア！":"¡Superé {h} en POV Jump!","スコア {s}":"Puntos: {s}","（赤コイン5まい！）":" (¡las 5 monedas rojas!)","このステージに挑戦してね":"¿Puedes superar este nivel?","コピーしました":"Copiado","コピーできませんでした":"No se pudo copiar","きょうのステージ クリア!":"¡Nivel del día superado!","ステージ {n} クリア!":"¡Nivel {n} superado!","{t} のステージ":"Mundo: {t}","スコア":"Puntos","コイン {c}   赤コイン {r}/5":"Monedas {c}   Rojas {r}/5","タイム {t}びょう":"Tiempo {t} s","コイン {c}  ・  赤コイン {r}/5":"Monedas {c}  ·  Rojas {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"Se abrió la ventana de X. Guarda la imagen con «Guardar imagen» y adjúntala.","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"Imagen copiada. Pégala en la ventana de X (⌘V / Ctrl+V) para adjuntarla.","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"Se abrió la ventana de X. Guarda la imagen con «Guardar imagen» (abajo) y adjúntala.","シェアしました。":"Compartido.","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"Aquí no se puede usar el menú de compartir. Usa «Compartir en X» o «Guardar imagen».","前へ / 後ろへ":"Adelante / Atrás","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"Saltar (mantén para subir más; púlsalo justo antes de pisar a un enemigo para un gran salto)","ダッシュ（Sでも走れます）":"Correr (también con S)","こうげき（ファイア・アイス・ムチを取ると使えます）":"Atacar (cuando tengas Fuego, Hielo o Látigo)","マウス":"Ratón","見まわす（矢印キーでも見まわせます）":"Mirar alrededor (también con las flechas)","左スティック":"Palanca izq.","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"Pon el dedo en el círculo y deslízalo para moverte. Llévalo hasta el borde para correr","ジャンプ":"Saltar","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"Mantén para saltar más alto. Púlsalo justo antes de pisar a un enemigo para un gran salto","ファイア・アイス・ムチを取ると使えます":"Disponible cuando tengas Fuego, Hielo o Látigo","なぞる":"Deslizar","画面をなぞって見まわします":"Desliza la pantalla para mirar alrededor","水に入ると、動きがおそくなります。":"El agua te hace ir más lento.","毒の水たまりに長くいると、ダメージを受けます。":"Si te quedas mucho en el veneno, recibirás daño.","マグマに落ちるとミス。ほのおの噴き出しに注意。":"Caer en el magma te cuesta una vida. Cuidado con los chorros de fuego.","暗い屋敷。ライトで照らして進みます。":"Una mansión oscura. Ilumina el camino para avanzar.","トランポリンで、空の高い足場へ行けます。":"Los trampolines te llevan a plataformas altas en el cielo.","氷の床はすべります。":"El suelo helado resbala.","重力が弱く、高く跳べます。":"Con poca gravedad saltas muy alto.","ここから「{t}」のステージ。":"Aquí empieza el mundo «{t}».","ゴール前に、ちゅうボスがまっています。":"Un minijefe te espera antes de la meta.","ゴール前に、ボスがまっています。":"El jefe te espera antes de la meta.","ちょうせんが とどいています":"¡Te han desafiado!","ステージ {n}（{t}）":"Nivel {n} ({t})","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"El juego se actualizó, así que el nivel puede ser algo distinto al que te enviaron.","このステージに ちょうせん":"Aceptar el desafío","・":", ","FPS ジャンプアクション":"Plataformas 3D en primera persona","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"Corre y salta en primera persona hasta la meta. Cada nivel se genera de nuevo y el mundo cambia cada 5 niveles: {w}.","はじめる":"Empezar","せってい":"Ajustes","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"No se pudieron cargar los modelos; se mostrarán formas simples.","キャラクターを読みこみ中…":"Cargando personajes…","横向きにすると遊びやすくなります。":"Gira el móvil en horizontal para jugar mejor.","Enter キーでも始められます。":"También puedes empezar con Enter.","バージョン {v}（{d} 更新）":"Versión {v} (actualizada el {d})","ハイスコア {s}":"Récord {s}","とうたつステージ {n}":"Nivel máximo {n}","きょうのステージは {n}（{t}）":"Nivel del día: {n} ({t})","ポーズ":"Pausa","つづける":"Continuar","ステージ1から":"Desde el nivel 1","タイトルへ":"Ir al título","ことば":"Idioma","おんりょう":"Volumen","ミュート":"Silencio","視点のかんど":"Sensibilidad de cámara","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"La sensibilidad afecta al ratón, al deslizar y a las flechas. Cuanto más alto, más rápido giras.","もどる":"Volver","ゲームオーバー":"Fin del juego","とうたつステージ":"Nivel alcanzado","コイン":"Monedas","R キーでも再挑戦できます。":"Pulsa R para reintentar.","タイム":"Tiempo","{t}びょう":"{t} s","じこベスト":"Mejor marca","きょうのステージ {n}（{t}）":"Nivel del día {n} ({t})","クリア!":"¡Superado!","自己ベスト!":"¡Nueva mejor marca!","タイムボーナス":"Bonus de tiempo","赤コイン":"Monedas rojas","ハイスコア":"Récord","ステージ {n} へ":"Al nivel {n}","このゲームを広める":"Comparte el juego","Xでシェア（画像つき）":"Compartir en X (con imagen)","スマホで画像つきシェア":"Compartir con imagen (móvil)","リンクをコピー":"Copiar enlace","シェアする画像":"Imagen para compartir","スコアの入った画像と、{tags} のハッシュタグが付きます。":"Se añade una imagen con tu puntuación y los hashtags {tags}.","画像を保存":"Guardar imagen","ストーリーズ用（縦長）":"Para historias (vertical)","Enter キーでも進めます。R キーでステージ1から。":"Pulsa Enter para seguir o R para volver al nivel 1.","きょうのステージ {n}「{t}」スタート!":"¡Nivel del día {n}: {t}! ¡Adelante!","ステージ {n}「{t}」スタート!":"¡Nivel {n}: {t}! ¡Adelante!","ボスせん":"Combate contra el jefe","ちゅうボスせん":"Combate contra el minijefe","画面をなぞって見まわせます":"Desliza la pantalla para mirar alrededor","矢印キーかドラッグで見まわせます":"Usa las flechas o arrastra para mirar","チェックポイントからやりなおし":"Reiniciando desde el punto de control","もういちど!":"¡Otra vez!","クリア記念の画像":"Imagen de recuerdo","インスタグラムのストーリーズなどに使えます。":"Ideal para historias de Instagram y más.","画像を作れませんでした。":"No se pudo crear la imagen.","保存しました。":"Guardado.","保存をやめました。":"Guardado cancelado.","少し待ってから、もう一度押してください。":"Espera un momento y vuelve a intentarlo.","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"No se puede guardar en esta app. Ábrelo en un navegador o en un ordenador.","画像を長押し（パソコンは右クリック）で保存してください。":"Mantén pulsada la imagen (clic derecho en el ordenador) para guardarla.","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"Guardado. Si no funcionó, mantén pulsada la imagen (o clic derecho) para guardarla.","おと: オフ":"Sonido: no","おと: オン":"Sonido: sí","ステージ":"Nivel","のこり":"Tiempo","ライフ":"Vidas","うしろ!":"¡Detrás!","いどう":"Mover","ダッシュ":"Correr","おと":"Sonido","しびれて うごけない!":"¡Electrocutado! ¡No puedes moverte!"},
+  hi: {"もり":"जंगल","うみ":"समुद्र","どくのぬま":"ज़हरीला दलदल","マグマ":"लावा","やしき":"हवेली","そら":"आसमान","こおり":"बर्फ़","うちゅう":"अंतरिक्ष","1UP! ライフが増えた":"1UP! एक जीवन और","ファイア":"फ़ायर","アイス":"आइस","ムチ":"कोड़ा","バリアがまもってくれた!":"ढाल ने तुम्हें बचा लिया!","ダメージ! ちいさくなった":"चोट लगी! तुम छोटे हो गए","しびれた! 2びょう うごけない":"झटका लगा! 2 सेकंड तक हिल नहीं सकते","じかんぎれ!":"समय खत्म!","やられた!":"हार गए!","れんぞくふみつけ 1UP!":"लगातार कुचलना 1UP!","れんぞく {n}!":"कॉम्बो {n}!","パワーベリー! おおきくなった":"पावर बेरी! तुम बड़े हो गए","ムチボタンで攻撃":"कोड़ा बटन से हमला करो","ボタンで発射":"बटन से चलाओ","Zキーで攻撃":"Z दबाकर हमला करो","Zキーで発射":"Z दबाकर चलाओ","ファイアシード!":"फ़ायर सीड!","アイスシード! 敵をこおらせる":"आइस सीड! दुश्मनों को जमा देता है","つるのムチ! 少し先までとどく":"बेल का कोड़ा! थोड़ी दूर तक पहुँचता है","にじベリー! 10びょう むてき":"इंद्रधनुष बेरी! 10 सेकंड तक अजेय","ダブルブーツ! 空中でもう1回ジャンプ":"डबल बूट्स! हवा में एक बार और कूदो","マント! ジャンプ長押しで ゆっくり落ちる":"केप! कूद दबाए रखो, धीरे-धीरे उतरोगे","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"मिनी मशरूम! छोटी जगहों से निकल सकते हो। एक चोट लगी तो हार","じしゃく! コインをすいよせる":"चुंबक! सिक्के खींच लेता है","バリア! 1回だけ攻撃をふせぐ":"ढाल! एक वार रोक लेती है","スロー時計! 敵がゆっくりになる":"धीमी घड़ी! दुश्मन धीमे हो गए","むてきがきれた":"अजेयता खत्म हुई","ダブルブーツがきれた":"डबल बूट्स खत्म हुए","マントがきれた":"केप खत्म हुआ","じしゃくがきれた":"चुंबक खत्म हुआ","もとの大きさにもどった":"फिर से सामान्य आकार","どくでダメージ!":"ज़हर से चोट!","赤コイン5まい コンプリート! 1UP":"पाँचों लाल सिक्के! 1UP","赤コイン {n} / 5":"लाल सिक्के {n} / 5","チェックポイント!":"चेकपॉइंट!","ステージクリア!":"स्टेज पूरा!","コドラ":"कोडोरा","ドラゴ大王":"राजा ड्रैगो","ボスをたおした! ゴールへ!":"बॉस हार गया! मंज़िल की ओर!","ちゅうボスをたおした! ゴールへ!":"मिनी-बॉस हार गया! मंज़िल की ओर!","ボス ドラゴ大王! {how}でたおせ!":"बॉस: राजा ड्रैगो! {how} से हराओ!","ちゅうボス コドラ! ふんづけてたおせ!":"मिनी-बॉस कोडोरा! इस पर कूदकर हराओ!","ねばねば! しばらくジャンプが低くなる":"चिपचिपा! कुछ देर कम ऊँचा कूदोगे","すみをかけられた!":"स्याही पड़ गई!","かくし部屋! コインを集めて、おくの土管から出よう":"गुप्त कमरा! सिक्के इकट्ठा करो और पीछे वाले पाइप से बाहर निकलो","もとの道にもどった!":"फिर से मुख्य रास्ते पर!","ミニ":"मिनी","おおきい":"बड़ा","ちいさい":"छोटा"," ・":" · ","きょうのステージ":"आज का स्टेज","ちょうせん":"चुनौती","こうげき":"हमला","むてき":"अजेय","ブーツ":"जूते","マント":"केप","じしゃく":"चुंबक","スロー":"धीमा","ねばねば":"चिपचिपा","バリア":"ढाल","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"अब तुम भाषा चुन सकते हो (日本語, English, 中文, Español, हिन्दी)","敵・アイテム・しかけの3Dモデルを新しくしました":"दुश्मनों, आइटम और जालों के नए 3D मॉडल","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"खेल का नाम \"Pyon Run\" से बदलकर \"POV Jump\" हो गया","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"X पर शेयर करने पर स्कोर वाली तस्वीर और #gamedev जुड़ जाता है","ちょうせんリンクがバージョンに対応しました":"चुनौती लिंक में अब गेम का वर्ज़न भी होता है","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"8 दुनियाएँ, मोड़ और दोराहे, और नए दुश्मन, आइटम और जाल जोड़े गए","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"आज का स्टेज, चुनौती लिंक और घोस्ट जोड़े गए","アップデートしました（バージョン {v}）":"अपडेट हुआ (वर्ज़न {v})","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #indiegame","きょうのステージ（{t}）":"आज का स्टेज ({t})","ステージ{n}（{t}）":"स्टेज {n} ({t})","POV Jumpで{h}をクリア！":"मैंने POV Jump में {h} पूरा किया!","スコア {s}":"स्कोर {s}","（赤コイン5まい！）":" (पाँचों लाल सिक्के!)","このステージに挑戦してね":"क्या तुम यह स्टेज पार कर सकते हो?","コピーしました":"कॉपी हो गया","コピーできませんでした":"कॉपी नहीं हो सका","きょうのステージ クリア!":"आज का स्टेज पूरा!","ステージ {n} クリア!":"स्टेज {n} पूरा!","{t} のステージ":"{t} दुनिया","スコア":"स्कोर","コイン {c}   赤コイン {r}/5":"सिक्के {c}   लाल सिक्के {r}/5","タイム {t}びょう":"समय {t} सेकंड","コイン {c}  ・  赤コイン {r}/5":"सिक्के {c}  ·  लाल सिक्के {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"X पोस्ट विंडो खुल गई। \"तस्वीर सहेजें\" से तस्वीर सहेजकर जोड़ो।","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"तस्वीर कॉपी हो गई। X पोस्ट विंडो में पेस्ट करो (⌘V / Ctrl+V), तस्वीर जुड़ जाएगी।","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"X पोस्ट विंडो खुल गई। नीचे \"तस्वीर सहेजें\" से तस्वीर सहेजकर जोड़ो।","シェアしました。":"शेयर हो गया।","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"यहाँ शेयर मेनू नहीं चलता। \"X पर शेयर करें\" या \"तस्वीर सहेजें\" इस्तेमाल करो।","前へ / 後ろへ":"आगे / पीछे","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"कूदो (दबाए रखो तो ऊँची छलांग; दुश्मन पर गिरने से ठीक पहले दबाओ तो बड़ी छलांग)","ダッシュ（Sでも走れます）":"दौड़ो (S से भी)","こうげき（ファイア・アイス・ムチを取ると使えます）":"हमला (फ़ायर, आइस या कोड़ा मिलने के बाद)","マウス":"माउस","見まわす（矢印キーでも見まわせます）":"चारों ओर देखो (तीर कुंजियों से भी)","左スティック":"बायाँ स्टिक","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"गोले पर उँगली रखकर आगे-पीछे, दाएँ-बाएँ खिसकाओ। किनारे तक ले जाओ तो दौड़ोगे","ジャンプ":"कूदो","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"दबाए रखो तो ऊँची छलांग। दुश्मन पर गिरने से ठीक पहले दबाओ तो बड़ी छलांग","ファイア・アイス・ムチを取ると使えます":"फ़ायर, आइस या कोड़ा मिलने के बाद चलेगा","なぞる":"स्वाइप","画面をなぞって見まわします":"चारों ओर देखने के लिए स्क्रीन पर स्वाइप करो","水に入ると、動きがおそくなります。":"पानी में तुम धीमे चलोगे।","毒の水たまりに長くいると、ダメージを受けます。":"ज़हरीले पानी में ज़्यादा देर रुके तो चोट लगेगी।","マグマに落ちるとミス。ほのおの噴き出しに注意。":"लावा में गिरे तो एक जीवन गया। आग की लपटों से बचो।","暗い屋敷。ライトで照らして進みます。":"अँधेरी हवेली। रोशनी से रास्ता देखते हुए बढ़ो।","トランポリンで、空の高い足場へ行けます。":"ट्रैम्पोलिन से आसमान के ऊँचे प्लेटफ़ॉर्म तक पहुँचो।","氷の床はすべります。":"बर्फ़ीला फ़र्श फिसलन भरा है।","重力が弱く、高く跳べます。":"कम गुरुत्वाकर्षण में ऊँचा कूद सकते हो।","ここから「{t}」のステージ。":"यहाँ से \"{t}\" वाले स्टेज शुरू।","ゴール前に、ちゅうボスがまっています。":"मंज़िल से पहले एक मिनी-बॉस इंतज़ार कर रहा है।","ゴール前に、ボスがまっています。":"मंज़िल से पहले बॉस इंतज़ार कर रहा है।","ちょうせんが とどいています":"तुम्हें चुनौती मिली है!","ステージ {n}（{t}）":"स्टेज {n} ({t})","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"गेम अपडेट हुआ है, इसलिए स्टेज भेजे गए स्टेज से थोड़ा अलग हो सकता है।","このステージに ちょうせん":"चुनौती स्वीकार करो","・":", ","FPS ジャンプアクション":"फ़र्स्ट-पर्सन 3D जंप एक्शन","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"फ़र्स्ट-पर्सन में दौड़ो, कूदो और मंज़िल तक पहुँचो। हर बार नया स्टेज बनता है, और हर 5 स्टेज पर दुनिया बदलती है: {w}।","はじめる":"शुरू करो","せってい":"सेटिंग्स","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"कैरेक्टर मॉडल लोड नहीं हुए, इसलिए सरल आकार दिखेंगे।","キャラクターを読みこみ中…":"कैरेक्टर लोड हो रहे हैं…","横向きにすると遊びやすくなります。":"फ़ोन को आड़ा करके खेलना आसान है।","Enter キーでも始められます。":"Enter दबाकर भी शुरू कर सकते हो।","バージョン {v}（{d} 更新）":"वर्ज़न {v} ({d} को अपडेट)","ハイスコア {s}":"हाई स्कोर {s}","とうたつステージ {n}":"सबसे दूर स्टेज {n}","きょうのステージは {n}（{t}）":"आज का स्टेज: {n} ({t})","ポーズ":"पॉज़","つづける":"जारी रखो","ステージ1から":"स्टेज 1 से","タイトルへ":"मुख्य स्क्रीन पर","ことば":"भाषा","おんりょう":"आवाज़","ミュート":"म्यूट","視点のかんど":"देखने की संवेदनशीलता","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"यह माउस, स्वाइप और तीर कुंजियों पर लागू होती है। संख्या जितनी बड़ी, उतनी तेज़ी से मुड़ोगे।","もどる":"वापस","ゲームオーバー":"गेम ओवर","とうたつステージ":"पहुँचा स्टेज","コイン":"सिक्के","R キーでも再挑戦できます。":"R दबाकर फिर से कोशिश करो।","タイム":"समय","{t}びょう":"{t} सेकंड","じこベスト":"सबसे अच्छा","きょうのステージ {n}（{t}）":"आज का स्टेज {n} ({t})","クリア!":"पूरा!","自己ベスト!":"नया रिकॉर्ड!","タイムボーナス":"समय बोनस","赤コイン":"लाल सिक्के","ハイスコア":"हाई स्कोर","ステージ {n} へ":"स्टेज {n} पर चलो","このゲームを広める":"यह गेम शेयर करो","Xでシェア（画像つき）":"X पर शेयर करें (तस्वीर के साथ)","スマホで画像つきシェア":"फ़ोन से तस्वीर के साथ शेयर","リンクをコピー":"लिंक कॉपी करें","シェアする画像":"शेयर की जाने वाली तस्वीर","スコアの入った画像と、{tags} のハッシュタグが付きます。":"स्कोर वाली तस्वीर और {tags} हैशटैग जुड़ेंगे।","画像を保存":"तस्वीर सहेजें","ストーリーズ用（縦長）":"स्टोरीज़ के लिए (लंबी)","Enter キーでも進めます。R キーでステージ1から。":"आगे बढ़ने के लिए Enter दबाओ। स्टेज 1 से शुरू करने के लिए R दबाओ।","きょうのステージ {n}「{t}」スタート!":"आज का स्टेज {n}: \"{t}\" शुरू!","ステージ {n}「{t}」スタート!":"स्टेज {n}: \"{t}\" शुरू!","ボスせん":"बॉस की लड़ाई","ちゅうボスせん":"मिनी-बॉस की लड़ाई","画面をなぞって見まわせます":"चारों ओर देखने के लिए स्क्रीन पर स्वाइप करो","矢印キーかドラッグで見まわせます":"तीर कुंजियों या ड्रैग से चारों ओर देखो","チェックポイントからやりなおし":"चेकपॉइंट से फिर शुरू","もういちど!":"फिर से!","クリア記念の画像":"जीत की यादगार तस्वीर","インスタグラムのストーリーズなどに使えます。":"Instagram स्टोरीज़ वगैरह में लगा सकते हो।","画像を作れませんでした。":"तस्वीर नहीं बन सकी।","保存しました。":"सहेज लिया।","保存をやめました。":"सहेजना रद्द हुआ।","少し待ってから、もう一度押してください。":"थोड़ा रुककर फिर से दबाओ।","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"इस ऐप में सहेज नहीं सकते। ब्राउज़र या कंप्यूटर में खोलो।","画像を長押し（パソコンは右クリック）で保存してください。":"तस्वीर को देर तक दबाकर (कंप्यूटर पर राइट-क्लिक) सहेजो।","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"सहेज लिया। अगर न हुआ हो तो तस्वीर को देर तक दबाकर (या राइट-क्लिक) सहेजो।","おと: オフ":"आवाज़: बंद","おと: オン":"आवाज़: चालू","ステージ":"स्टेज","のこり":"समय","ライフ":"जीवन","うしろ!":"पीछे!","いどう":"चलो","ダッシュ":"दौड़","おと":"आवाज़","しびれて うごけない!":"झटका लगा! हिल नहीं सकते!"}
+};
+
 /* ================= 3Dモデル(ChatGPTで作ったGLBを1つのファイルにまとめたもの) ================= */
 /* models.bin = [u32 ヘッダ長][JSONヘッダ][int16 位置 / uint16 インデックス]。向きはゲーム用(正面 -Z)に変換済み。配信は base64 にした models.json */
 const MODELS = { ready: false, failed: false, H: null, buf: null, geo: {}, world: {} };
@@ -564,6 +670,7 @@ function makeModel(name, opt) {
     n.g.forEach(function (pr, pi) {
       const mt = md.mats[pr.c];
       const mm = new THREE.Mesh(modelPrimGeo(name, pr.c, ni, pi), opt.mat || modelMat(mt[0], mt[1], opt.tint));
+      mm.userData.mat = mt[2] || '';
       o.add(mm);
     });
     (n.p >= 0 ? objs[n.p] : root).add(o);
@@ -607,6 +714,22 @@ function wrapModel(name, scale, opt) {
   return g;
 }
 
+/* 中身を「体」用の箱に入れる(伸び縮み・かたむけを、モデルの大きさを崩さずにかけられる) */
+function wrapBody(name, scale, opt) {
+  const g = wrapModel(name, scale, opt), b = new THREE.Group();
+  g.remove(g.userData.inner); b.add(g.userData.inner); g.add(b); g.userData.body = b;
+  return g;
+}
+/* 底が y=0 にくるように持ち上げる(中心が原点のモデル用) */
+function sitModel(g) {
+  const bx = new THREE.Box3().setFromObject(g);
+  if (!bx.isEmpty()) g.userData.inner.position.y -= bx.min.y;
+  return g;
+}
+function itemModel(name, scale) { return hasModel(name) ? sitModel(wrapModel(name, scale)) : null; }
+/* 決まった材質の部品だけを集める(光るいなずまを隠す、など) */
+function meshesOf(root, mat) { const out = []; root.traverse(function (o) { if (o.isMesh && o.userData.mat === mat) out.push(o); }); return out; }
+
 /* ---------- アイテム ---------- */
 function makeBerry() {
   if (hasModel('berry')) { const g = wrapModel('berry', 1.15); return g; }
@@ -639,12 +762,14 @@ function makeVineItem() {
   return g;
 }
 function makeRainbowBerry() {
+  if (hasModel('nijiberry')) return wrapModel('nijiberry', 1.15);
   const g = new THREE.Group(), cols = [0xff5d5d, 0xffa64a, 0xffe14a, 0x6fdc6a, 0x5ab6ff, 0x7d6ef2, 0xd77bff];
   cols.forEach(function (c, i) { const b = mesh(GEO.sph, c, 0.3 - i * 0.015, 0.06, 0.3 - i * 0.015, 0, 0.12 + i * 0.065, 0, { emissive: new THREE.Color(c).multiplyScalar(0.35).getHex() }); g.add(b); });
   const st = mesh(GEO.oct, 0xffd84a, 0.12, 0.12, 0.05, 0, 0.66, 0, { emissive: 0x806000 }); g.add(st);
   return g;
 }
 function makeBootsItem() {
+  const md = itemModel('doubleboots', 1.15); if (md) return md;
   const g = new THREE.Group();
   g.add(mesh(GEO.box, 0x4fc3f7, 0.22, 0.34, 0.24, 0, 0.3, 0.04));
   g.add(mesh(GEO.box, 0x4fc3f7, 0.24, 0.16, 0.42, 0, 0.12, -0.06));
@@ -653,6 +778,7 @@ function makeBootsItem() {
   return g;
 }
 function makeCapeItem() {
+  const md = itemModel('cape_item', 1.15); if (md) return md;
   const g = new THREE.Group();
   const c = mesh(GEO.box, 0xffd84a, 0.5, 0.5, 0.06, 0, 0.32, 0); c.rotation.x = 0.25; g.add(c);
   g.add(mesh(GEO.box, 0xe0453a, 0.52, 0.06, 0.08, 0, 0.06, -0.06));
@@ -660,6 +786,7 @@ function makeCapeItem() {
   return g;
 }
 function makeMiniItem() {
+  const md = itemModel('minishroom', 1.0); if (md) return md;
   const g = new THREE.Group();
   g.add(mesh(GEO.cyl, 0xfff4e0, 0.08, 0.18, 0.08, 0, 0.09, 0));
   g.add(mesh(GEO.sph, 0x2fb6a8, 0.2, 0.13, 0.2, 0, 0.2, 0));
@@ -668,6 +795,7 @@ function makeMiniItem() {
   return g;
 }
 function makeMagnetItem() {
+  const md = itemModel('magnet', 1.15); if (md) return md;
   const g = new THREE.Group();
   const t = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.07, 8, 16, Math.PI), M(0xd9452f)); t.rotation.z = Math.PI; t.position.y = 0.42; g.add(t); worldGeoTrack(t.geometry);
   g.add(mesh(GEO.box, 0x3a6fd9, 0.14, 0.2, 0.14, 0.2, 0.28, 0));
@@ -677,12 +805,14 @@ function makeMagnetItem() {
   return g;
 }
 function makeBarrierItem() {
+  const md = itemModel('barrier', 1.15); if (md) return md;
   const g = new THREE.Group();
   g.add(mesh(GEO.sph, 0x9fe8ff, 0.3, 0.3, 0.3, 0, 0.32, 0, { transparent: true, opacity: 0.45, emissive: 0x1a5a70 }));
   g.add(mesh(GEO.oct, 0xffd84a, 0.12, 0.12, 0.05, 0, 0.32, 0, { emissive: 0x806000 }));
   return g;
 }
 function makeClockItem() {
+  const md = itemModel('slowclock', 1.15); if (md) return md;
   const g = new THREE.Group();
   const f = mesh(GEO.cyl24, 0x8a5ad0, 0.26, 0.12, 0.26, 0, 0.32, 0); f.rotation.x = Math.PI / 2; g.add(f);
   const d = mesh(GEO.cyl24, 0xffffff, 0.21, 0.13, 0.21, 0, 0.32, 0); d.rotation.x = Math.PI / 2; g.add(d);
@@ -693,6 +823,7 @@ function makeClockItem() {
   return g;
 }
 function makeRedCoin() {
+  if (hasModel('redcoin')) return wrapModel('redcoin', 1.24);
   const g = new THREE.Group();
   g.add(new THREE.Mesh(GEO.coin, M(0xe0243a, { emissive: 0x5a0010 })));
   const r = new THREE.Mesh(GEO.torus, M(0xffd84a, { emissive: 0x6a4a00 })); r.scale.setScalar(0.3); g.add(r);
@@ -1374,6 +1505,12 @@ function addBlock(type, u, x, y, opt) {
 }
 function makePipeMesh(h, warp) {
   const g = new THREE.Group();
+  if (warp && hasModel('gim_warppipe')) {
+    /* 隠し部屋の土管: 高さだけ合わせる(幅は当たり判定の1.6にそろえる) */
+    const m = wrapModel('gim_warppipe', 0.8); m.userData.inner.scale.y = h / 5.5; g.add(m);
+    const a = mesh(GEO.cone, 0xfff27a, 0.25, 0.4, 0.25, 0, h + 1.1, 0, { emissive: 0x7a6a00 }); a.rotation.x = Math.PI; g.add(a); spinners.push({ m: a, sp: 2, bob: 0.15, y0: h + 1.1 });
+    return g;
+  }
   g.add(mesh(GEO.cyl, warp ? 0x2fa8b0 : 0x2fbf5a, 0.72, h - 0.35, 0.72, 0, (h - 0.35) / 2, 0));
   g.add(mesh(GEO.cyl, warp ? 0x5fe0e0 : 0x47e07a, 0.88, 0.35, 0.88, 0, h - 0.175, 0));
   g.add(mesh(GEO.cyl, 0x0c3a1f, 0.62, 0.02, 0.62, 0, h + 0.005, 0));
@@ -1665,7 +1802,8 @@ function buildWorld() {
   LV.plats.forEach(function (pl) {
     const thick = pl.kind === 'island' ? 1.2 : 0.6;
     const s = addCBox(pl.u - pl.w / 2, pl.u + pl.w / 2, pl.x - pl.d / 2, pl.x + pl.d / 2, pl.y - thick, pl.y, null);
-    const name = pl.kind === 'island' ? (th.id === 'sky' ? 'sky_plat_island' : th.id === 'space' ? 'space_plat_asteroid_m' : th.plat) : pl.kind === 'thin' ? 'ice_plat_ice' : th.plat;
+    const name = pl.kind === 'island' ? (th.id === 'sky' ? 'sky_plat_island' : th.id === 'space' ? 'space_plat_asteroid_m' : th.plat)
+      : pl.kind === 'thin' ? (hasModel('gim_thinice') ? 'gim_thinice' : 'ice_plat_ice') : pl.kind === 'fall' && hasModel('gim_fallplat') ? 'gim_fallplat' : th.plat;
     const pm = platModel(name, pl.w, pl.kind === 'island' ? 2.2 : thick, pl.d) || (function () { const g = new THREE.Group(); const b = new THREE.Mesh(boxGeoWorld(-pl.w / 2, pl.w / 2, -thick, 0, -pl.d / 2, pl.d / 2), tm.arr); g.add(b); return g; })();
     placeAt(pm, pl.u, pl.x, pl.y); worldGroup.add(pm);
     s.mesh = pm;
@@ -1681,16 +1819,29 @@ function buildWorld() {
     let mat = null, y = 0.02;
     if (z.t === 'water') { mat = trackMat(new THREE.MeshLambertMaterial({ color: 0x4fb8ff, transparent: true, opacity: 0.55, depthWrite: false })); y = 0.42; }
     if (z.t === 'poison') mat = trackMat(new THREE.MeshLambertMaterial({ color: 0x9be03a, emissive: 0x3a6a10, transparent: true, opacity: 0.85 }));
-    if (z.t === 'conv') mat = trackMat(new THREE.MeshLambertMaterial({ color: 0x4a4a58 }));
+    if (z.t === 'conv') {
+      if (hasModel('gim_conveyor')) {
+        /* ベルトコンベアのモデルを、ゾーンいっぱいにしきつめる(上面 y=0.03) */
+        const W = z.x1 - z.x0, Lz = z.u1 - z.u0, nx = Math.max(1, Math.round(W / 4)), nu = Math.max(1, Math.round(Lz / 4));
+        const mats = [], q = new THREE.Quaternion().setFromAxisAngle(UP, yawOf(s)), sc = new THREE.Vector3((W / nx) / (5.5 * K) * K, K, (Lz / nu) / (11 * K) * K);
+        for (let a = 0; a < nx; a++) for (let b = 0; b < nu; b++) {
+          const c = c2w(z.u0 + (b + 0.5) * Lz / nu, z.x0 + (a + 0.5) * W / nx, s);
+          mats.push(new THREE.Matrix4().compose(new THREE.Vector3(c[0], 0.03, c[1]), q, sc));
+        }
+        makeInstanced('gim_conveyor', mats, worldGroup);
+      } else mat = trackMat(new THREE.MeshLambertMaterial({ color: 0x4a4a58 }));
+    }
     if (mat) {
       const m = new THREE.Mesh(GEO.plane, mat); m.scale.set(r.maxX - r.minX, 1, r.maxZ - r.minZ); m.position.set((r.minX + r.maxX) / 2, y, (r.minZ + r.maxZ) / 2); worldGroup.add(m);
       if (z.t === 'water') anims.push({ t: 'bob', m: m, y0: y, a: 0.03 });
-      if (z.t === 'conv') {
+    }
+    if (z.t === 'conv') {
+      {
         /* 進む向きの矢印 */
         for (let k = z.u0 + 0.5; k < z.u1; k += 1.2) for (let xx = -6; xx <= 6; xx += 4) {
           const ar = mesh(GEO.cone, 0xffb347, 0.22, 0.5, 0.06, 0, 0.05, 0, { emissive: 0x6a3a00 });
           const holder = new THREE.Group(); holder.add(ar); ar.rotation.x = z.v > 0 ? -Math.PI / 2 : Math.PI / 2;
-          placeAt(holder, k, xx, 0.03, s); worldGroup.add(holder);
+          placeAt(holder, k, xx, 0.07, s); worldGroup.add(holder);
           anims.push({ t: 'conv', m: holder, seg: s, u: k, x: xx, u0: z.u0, u1: z.u1, v: z.v });
         }
       }
@@ -1920,7 +2071,7 @@ function flash() { E.flash.classList.remove('on'); void E.flash.offsetWidth; E.f
 function addScore(n) { S.score += n; }
 function gainCoin() {
   S.coins++; addScore(200); sfx('coin');
-  if (S.coins % 100 === 0) { S.lives++; sfx('oneup'); toast('1UP! ライフが増えた'); }
+  if (S.coins % 100 === 0) { S.lives++; sfx('oneup'); toast(T('1UP! ライフが増えた')); }
 }
 function oneUp(msg) { S.lives++; sfx('oneup'); toast(msg || '1UP!'); }
 
@@ -1932,9 +2083,9 @@ function setSize() {
 }
 function hurt() {
   if (P.invuln > 0 || S.mode !== 'play' || P.star > 0) return false;
-  if (P.barrier) { P.barrier = false; P.invuln = 1.6; sfx('shield'); toast('バリアがまもってくれた!'); burst(P.x, P.y + 0.8, P.z, 0x9fe8ff, 12, 4, 0.14, 0.5); return true; }
+  if (P.barrier) { P.barrier = false; P.invuln = 1.6; sfx('shield'); toast(T('バリアがまもってくれた!')); burst(P.x, P.y + 0.8, P.z, 0x9fe8ff, 12, 4, 0.14, 0.5); return true; }
   if (P.mini > 0) { die('enemy'); return true; }
-  if (P.state > 0) { P.state = 0; P.power = null; setSize(); P.invuln = 2.2; sfx('hurt'); flash(); toast('ダメージ! ちいさくなった'); }
+  if (P.state > 0) { P.state = 0; P.power = null; setSize(); P.invuln = 2.2; sfx('hurt'); flash(); toast(T('ダメージ! ちいさくなった')); }
   else die('enemy');
   return true;
 }
@@ -1945,14 +2096,14 @@ function knockFrom(e, power) {
 function stunPlayer() {
   if (S.mode !== 'play' || P.star > 0) return;
   P.stun = 2; P.vx *= 0.3; P.vz *= 0.3; P.fireCd = 0; jumpBuf = 0;
-  sfx('stun'); toast('しびれた! 2びょう うごけない', 1500);
+  sfx('stun'); toast(T('しびれた! 2びょう うごけない'), 1500);
 }
 function die(why) {
   if (S.mode !== 'play') return;
   S.mode = 'dead'; P.dead = true; P.deadT = 2.1; P.deadMode = why; P.stun = 0; P.star = 0;
   S.lives--; sfx('die'); flash();
   P.vy = why === 'fall' ? 0 : 11; P.vx = P.vz = 0;
-  toast(why === 'time' ? 'じかんぎれ!' : 'やられた!', 1800);
+  toast(T(why === 'time' ? 'じかんぎれ!' : 'やられた!'), 1800);
   cross.classList.remove('on');
 }
 /* 踏んだときのはね返り。踏む直前・直後にジャンプを押すと高くはねる */
@@ -1960,9 +2111,9 @@ function stompBounce() {
   const timely = clockT - P.jumpPressT < 0.15;
   P.combo++;
   const pts = [100, 200, 400, 800, 1000, 2000, 4000, 8000];
-  if (P.combo >= 9) oneUp('れんぞくふみつけ 1UP!');
+  if (P.combo >= 9) oneUp(T('れんぞくふみつけ 1UP!'));
   else addScore(pts[P.combo - 1]);
-  if (P.combo >= 3) toast('れんぞく ' + P.combo + '!', 700);
+  if (P.combo >= 3) toast(T('れんぞく {n}!', { n: P.combo }), 700);
   if (timely) { P.vy = 17.8 * JUMPK; P.jumping = true; sfx('hijump'); burst(P.x, P.y, P.z, 0xffe08a, 6, 3, 0.1, 0.3); }
   else { P.vy = (keys.KeyD ? 13 : 10) * JUMPK; P.jumping = !!keys.KeyD; }
   P.stompT = clockT; P.onGround = false; P.coyote = 0;
@@ -1970,21 +2121,21 @@ function stompBounce() {
 function giveItem(kind) {
   sfx('power');
   if (kind === 'fruit') {
-    if (P.state === 0) { P.state = 1; setSize(); toast('パワーベリー! おおきくなった'); }
+    if (P.state === 0) { P.state = 1; setSize(); toast(T('パワーベリー! おおきくなった')); }
     else { addScore(1000); toast('+1000'); }
   } else if (kind === 'fire' || kind === 'ice' || kind === 'whip') {
     const was = P.power;
     P.state = 2; P.power = kind; setSize();
-    const how = IS.touch ? kind === 'whip' ? 'ムチボタンで攻撃' : 'ボタンで発射' : 'Zキーで' + (kind === 'whip' ? '攻撃' : '発射');
-    toast((kind === 'fire' ? 'ファイアシード! ' : kind === 'ice' ? 'アイスシード! 敵をこおらせる ' : 'つるのムチ! 少し先までとどく ') + how, 2200);
+    const how = T(IS.touch ? (kind === 'whip' ? 'ムチボタンで攻撃' : 'ボタンで発射') : (kind === 'whip' ? 'Zキーで攻撃' : 'Zキーで発射'));
+    toast(T(kind === 'fire' ? 'ファイアシード!' : kind === 'ice' ? 'アイスシード! 敵をこおらせる' : 'つるのムチ! 少し先までとどく') + ' ' + how, 2200);
     if (was === kind) addScore(1000);
-  } else if (kind === 'star') { P.star = 10; sfx('star'); toast('にじベリー! 10びょう むてき', 1800); }
-  else if (kind === 'boots') { P.boots = 25; toast('ダブルブーツ! 空中でもう1回ジャンプ', 2000); }
-  else if (kind === 'cape') { P.cape = 25; toast('マント! ジャンプ長押しで ゆっくり落ちる', 2200); }
-  else if (kind === 'mini') { P.mini = 20; P.state = 0; P.power = null; setSize(); toast('ミニきのこ! ちいさなすき間を通れる。1回当たるとミス', 2400); }
-  else if (kind === 'magnet') { P.magnet = 20; toast('じしゃく! コインをすいよせる', 1800); }
-  else if (kind === 'barrier') { P.barrier = true; toast('バリア! 1回だけ攻撃をふせぐ', 1800); }
-  else if (kind === 'clock') { S.slowT = 8; toast('スロー時計! 敵がゆっくりになる', 1800); }
+  } else if (kind === 'star') { P.star = 10; sfx('star'); toast(T('にじベリー! 10びょう むてき'), 1800); }
+  else if (kind === 'boots') { P.boots = 25; toast(T('ダブルブーツ! 空中でもう1回ジャンプ'), 2000); }
+  else if (kind === 'cape') { P.cape = 25; toast(T('マント! ジャンプ長押しで ゆっくり落ちる'), 2200); }
+  else if (kind === 'mini') { P.mini = 20; P.state = 0; P.power = null; setSize(); toast(T('ミニきのこ! ちいさなすき間を通れる。1回当たるとミス'), 2400); }
+  else if (kind === 'magnet') { P.magnet = 20; toast(T('じしゃく! コインをすいよせる'), 1800); }
+  else if (kind === 'barrier') { P.barrier = true; toast(T('バリア! 1回だけ攻撃をふせぐ'), 1800); }
+  else if (kind === 'clock') { S.slowT = 8; toast(T('スロー時計! 敵がゆっくりになる'), 1800); }
 }
 function makeItemMesh(kind) {
   switch (kind) {
@@ -2081,8 +2232,8 @@ function updatePlayer(dt) {
   P.pitch = clamp(P.pitch + ((keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0)) * 1.8 * CFG.sens * dt, -1.3, 1.3);
   const stunned = P.stun > 0;
   if (stunned) { P.stun = Math.max(0, P.stun - dt); jumpBuf = 0; }
-  ['star', 'boots', 'cape', 'magnet', 'sticky'].forEach(function (k) { if (P[k] > 0) { P[k] = Math.max(0, P[k] - dt); if (P[k] === 0 && k !== 'sticky') toast({ star: 'むてきがきれた', boots: 'ダブルブーツがきれた', cape: 'マントがきれた', magnet: 'じしゃくがきれた' }[k], 1000); } });
-  if (P.mini > 0) { P.mini = Math.max(0, P.mini - dt); if (P.mini === 0) { setSize(); if (pointSolidBody()) { P.mini = 0.5; setSize(); } else toast('もとの大きさにもどった', 1000); } }
+  ['star', 'boots', 'cape', 'magnet', 'sticky'].forEach(function (k) { if (P[k] > 0) { P[k] = Math.max(0, P[k] - dt); if (P[k] === 0 && k !== 'sticky') toast(T({ star: 'むてきがきれた', boots: 'ダブルブーツがきれた', cape: 'マントがきれた', magnet: 'じしゃくがきれた' }[k]), 1000); } });
+  if (P.mini > 0) { P.mini = Math.max(0, P.mini - dt); if (P.mini === 0) { setSize(); if (pointSolidBody()) { P.mini = 0.5; setSize(); } else toast(T('もとの大きさにもどった'), 1000); } }
 
   const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
   const rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
@@ -2097,7 +2248,7 @@ function updatePlayer(dt) {
   const pz = zoneAt('poison', P.x, P.z), inPoison = !!pz && P.y < 0.15 && P.onGround;
   if (inPoison && P.star <= 0) {
     P.poisonT += dt;
-    if (P.poisonT > 1.2) { P.poisonT = 0; if (hurt()) toast('どくでダメージ!', 1200); }
+    if (P.poisonT > 1.2) { P.poisonT = 0; if (hurt()) toast(T('どくでダメージ!'), 1200); }
   } else P.poisonT = Math.max(0, P.poisonT - dt * 2);
   let spMul = 1;
   if (P.inWater) spMul *= 0.55;
@@ -2228,14 +2379,14 @@ function checkPickups(dt) {
       if (c.red !== undefined) {
         S.redsGot.push(c.red); S.reds = S.redsGot.length; sfx('red'); addScore(1000);
         burst(c.x, c.y, c.z, 0xe0243a, 8, 4, 0.12, 0.5);
-        if (S.reds >= 5) { addScore(5000); oneUp('赤コイン5まい コンプリート! 1UP'); } else toast('赤コイン ' + S.reds + ' / 5', 1100);
+        if (S.reds >= 5) { addScore(5000); oneUp(T('赤コイン5まい コンプリート! 1UP')); } else toast(T('赤コイン {n} / 5', { n: S.reds }), 1100);
       } else gainCoin();
     }
   }
   if (S.inBonus) return;
   const pu = playerU();
   if (!cpReached && pu > LV.cpU && P.y < 3) {
-    cpReached = true; S.cpU = LV.cpU + 1.5; sfx('check'); toast('チェックポイント!');
+    cpReached = true; S.cpU = LV.cpU + 1.5; sfx('check'); toast(T('チェックポイント!'));
     if (cpGem) cpGem.material = M(0xffc93c, { emissive: 0x7a5200 });
   }
   if (LV.arena && !S.fightOn && !S.bossDone && pu > LV.arena.a + 3) startFight();
@@ -2248,7 +2399,7 @@ function win() {
   if (S.score > S.best) { S.best = S.score; try { localStorage.setItem('pyonran-best', String(S.best)); } catch (e) {} }
   if (S.play === 'normal' && S.stage + 1 > S.bestStage) { S.bestStage = S.stage + 1; try { localStorage.setItem('pyonran-beststage', String(S.bestStage)); } catch (e) {} }
   saveGhostIfBest();
-  sfx('clear'); toast('ステージクリア!', 3000); cross.classList.remove('on');
+  sfx('clear'); toast(T('ステージクリア!'), 3000); cross.classList.remove('on');
 }
 
 /* ================= 敵 ================= */
@@ -2410,6 +2561,7 @@ function mkBonbori() {
   return g;
 }
 function mkByun(homing) {
+  if (homing && hasModel('byundama_homing')) return wrapModel('byundama_homing', 0.95);
   if (hasModel('byundama')) { const g = wrapModel('byundama', 0.95, homing ? { tint: 0xd9452f } : null); return g; }
   const g = new THREE.Group();
   g.add(mesh(GEO.sph, homing ? 0xd9452f : 0x7a4a26, 0.32, 0.3, 0.42, 0, 0, 0));
@@ -2418,6 +2570,12 @@ function mkByun(homing) {
   return g;
 }
 function mkCrawler(spiky) {
+  const nm = spiky ? 'togeguru' : 'kabeguru';
+  if (hasModel(nm)) {
+    const g = wrapModel(nm, 1.05), p = g.userData.p;
+    g.userData.body = p.body; g.userData.legs = [p.leg_1, p.leg_2, p.leg_3, p.leg_4, p.leg_5, p.leg_6].filter(Boolean);
+    return g;
+  }
   const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
   b.add(mesh(GEO.sph, spiky ? 0xb8323a : 0x3a7ad9, 0.36, 0.26, 0.4, 0, 0.26, 0));
   b.add(mesh(GEO.sph, 0x2b3350, 0.33, 0.08, 0.37, 0, 0.06, 0));
@@ -2430,6 +2588,7 @@ function mkCrawler(spiky) {
   return g;
 }
 function mkGoronbo() {
+  if (hasModel('goronbo')) { const g = wrapModel('goronbo', 1.0); g.userData.wheel = g.userData.p.wheel; return g; }
   const g = new THREE.Group(), w = new THREE.Group(); w.position.y = 0.48; g.add(w);
   const tire = new THREE.Mesh(GEO.cyl24, M(0x2a2a30)); tire.scale.set(0.48, 0.42, 0.48); tire.rotation.z = Math.PI / 2; w.add(tire);
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; const t = mesh(GEO.box, 0x3c3c44, 0.43, 0.06, 0.08, 0, Math.cos(a) * 0.48, Math.sin(a) * 0.48); t.rotation.x = -a; w.add(t); }
@@ -2450,6 +2609,7 @@ function mkGoronbo() {
   return g;
 }
 function mkCrow() {
+  if (hasModel('ushirogarasu')) { const g = wrapModel('ushirogarasu', 1.2), p = g.userData.p; g.userData.wings = [p.wing_R, p.wing_L]; return g; }
   const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
   b.add(mesh(GEO.sph, 0x2a2140, 0.3, 0.28, 0.4, 0, 0, 0));
   const beak = mesh(GEO.cone, 0xffcc4a, 0.08, 0.22, 0.08, 0, -0.02, -0.46); beak.rotation.x = -Math.PI / 2; b.add(beak);
@@ -2462,6 +2622,14 @@ function mkCrow() {
   return g;
 }
 function mkMimic() {
+  if (hasModel('mimic_coin') && hasModel('mimic_true')) {
+    const g = new THREE.Group();
+    const coin = wrapModel('mimic_coin', 1.3); g.add(coin);
+    const tru = wrapModel('mimic_true', 0.97); tru.visible = false; g.add(tru);
+    const p = tru.userData.p;
+    g.userData = { coin: coin, tru: tru, up: p.upper, lo: p.lower };
+    return g;
+  }
   const g = new THREE.Group();
   const coin = new THREE.Mesh(GEO.coin, M(0xffcf3f, { emissive: 0x6a4a00 })); coin.position.y = 0.0; g.add(coin);
   const tru = new THREE.Group(); tru.visible = false; g.add(tru);
@@ -2477,6 +2645,7 @@ function mkMimic() {
   return g;
 }
 function mkFish() {
+  if (hasModel('jumpfish')) { const g = wrapModel('jumpfish', 0.95); g.userData.body = g.userData.inner; g.userData.tail = g.userData.p.tail; return g; }
   const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
   b.add(mesh(GEO.sph, 0xff7a3a, 0.26, 0.24, 0.38, 0, 0, 0)); b.add(mesh(GEO.sph, 0xfff4e0, 0.2, 0.14, 0.3, 0, -0.1, -0.02));
   b.add(mesh(GEO.sph, 0xffffff, 0.07, 0.08, 0.05, -0.15, 0.08, -0.26)); b.add(mesh(GEO.sph, 0xffffff, 0.07, 0.08, 0.05, 0.15, 0.08, -0.26));
@@ -2486,6 +2655,11 @@ function mkFish() {
   return g;
 }
 function mkKurage() {
+  if (hasModel('kurage')) {
+    const g = wrapModel('kurage', 1.0), p = g.userData.p; g.userData.inner.position.y = 0.66;
+    g.userData.ts = [p.tentacle_1, p.tentacle_2, p.tentacle_3, p.tentacle_4].filter(Boolean);
+    return g;
+  }
   const g = new THREE.Group();
   g.add(mesh(GEO.sph, 0xff9be0, 0.42, 0.34, 0.42, 0, 0.42, 0, { transparent: true, opacity: 0.75, emissive: 0x4a1a3a }));
   g.add(mesh(GEO.sph, 0xfff0f5, 0.1, 0.08, 0.1, 0, 0.74, 0, { emissive: 0x8a7a80 }));
@@ -2504,6 +2678,7 @@ function mkIka() {
   return g;
 }
 function mkNeba() {
+  if (hasModel('nebaslime')) return wrapBody('nebaslime', 1.08);
   const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
   b.add(mesh(GEO.sph, 0x8ae04a, 0.44, 0.34, 0.44, 0, 0.32, 0, { transparent: true, opacity: 0.92, emissive: 0x1a3a08 }));
   b.add(mesh(GEO.cone, 0x8ae04a, 0.1, 0.22, 0.1, 0, 0.72, 0));
@@ -2513,6 +2688,7 @@ function mkNeba() {
   return g;
 }
 function mkPenguin() {
+  if (hasModel('penguin')) { const g = wrapBody('penguin', 1.03), p = g.userData.p; g.userData.fl = p.flipper_L; g.userData.fr = p.flipper_R; return g; }
   const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
   b.add(mesh(GEO.sph, 0x2b3a5a, 0.3, 0.42, 0.28, 0, 0.45, 0)); b.add(mesh(GEO.sph, 0xffffff, 0.22, 0.32, 0.1, 0, 0.42, -0.2));
   b.add(mesh(GEO.sph, 0xffffff, 0.06, 0.07, 0.04, -0.1, 0.72, -0.24)); b.add(mesh(GEO.sph, 0xffffff, 0.06, 0.07, 0.04, 0.1, 0.72, -0.24));
@@ -2523,6 +2699,7 @@ function mkPenguin() {
   return g;
 }
 function mkSnowball() {
+  if (hasModel('snowball')) { const g = wrapModel('snowball', 1.375); g.userData.inner.position.y = 0.5; g.userData.ball = g.userData.p.ball; return g; }
   const g = new THREE.Group(), b = new THREE.Group(); b.position.y = 0.5; g.add(b);
   b.add(mesh(GEO.sph, 0xffffff, 0.5, 0.5, 0.5, 0, 0, 0));
   b.add(mesh(GEO.sph, 0x222634, 0.05, 0.06, 0.03, -0.15, 0.1, -0.47)); b.add(mesh(GEO.sph, 0x222634, 0.05, 0.06, 0.03, 0.15, 0.1, -0.47));
@@ -2530,6 +2707,12 @@ function mkSnowball() {
   return g;
 }
 function mkUfo() {
+  if (hasModel('ufo')) {
+    const g = wrapModel('ufo', 1.3);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 1.5, 1, 20, 1, true), FX.beam); beam.position.y = -0.5; beam.visible = false; g.add(beam);
+    g.userData.beam = beam;
+    return g;
+  }
   const g = new THREE.Group();
   g.add(mesh(GEO.sph, 0xd0d4e0, 0.9, 0.2, 0.9, 0, 0, 0));
   g.add(mesh(GEO.sph, 0x9fe8ff, 0.42, 0.34, 0.42, 0, 0.14, 0, { transparent: true, opacity: 0.6, emissive: 0x1a4a5a }));
@@ -2540,6 +2723,11 @@ function mkUfo() {
   return g;
 }
 function mkKaiga() {
+  if (hasModel('kaiga')) {
+    const g = wrapModel('kaiga', 1.0), p = g.userData.p;
+    g.userData.pupils = []; g.userData.eyes = [p.eye_L, p.eye_R].filter(Boolean); g.userData.ey0 = g.userData.eyes.map(function (o) { return o.position.y; });
+    return g;
+  }
   const g = new THREE.Group();
   g.add(mesh(GEO.box, 0xc9a24a, 0.84, 1.1, 0.12, 0, 0, 0, { emissive: 0x2a2000 }));
   g.add(mesh(GEO.box, 0x3a2c5a, 0.66, 0.92, 0.04, 0, 0, -0.07));
@@ -2550,6 +2738,13 @@ function mkKaiga() {
   return g;
 }
 function mkRaincloud() {
+  if (hasModel('kaminarigumo')) {
+    const g = wrapModel('kaminarigumo', 1.6);
+    meshesOf(g, 'glow_bolt').forEach(function (m) { m.visible = false; });
+    const bolt = new THREE.Mesh(GEO.box, FX.bolt); bolt.scale.set(0.12, 1, 0.12); bolt.visible = false; g.add(bolt);
+    g.userData.bolt = bolt;
+    return g;
+  }
   const g = new THREE.Group();
   [[0, 0, 0, 0.6], [0.5, -0.05, 0.1, 0.45], [-0.5, -0.05, 0, 0.45], [0.15, 0.25, 0, 0.4]].forEach(function (p) { g.add(mesh(GEO.sph, 0x6a6e84, p[3], p[3] * 0.7, p[3], p[0], p[1], p[2])); });
   g.add(mesh(GEO.sph, 0xffffff, 0.08, 0.08, 0.04, -0.16, 0.05, -0.5)); g.add(mesh(GEO.sph, 0xffffff, 0.08, 0.08, 0.04, 0.16, 0.05, -0.5));
@@ -2559,6 +2754,11 @@ function mkRaincloud() {
   return g;
 }
 function mkHinotama() {
+  if (hasModel('hinotama')) {
+    /* 進む向きに顔、うしろに尾。上下に飛ぶので、顔を上に向けておく(落ちるときは全体が反転する) */
+    const g = new THREE.Group(), m = wrapModel('hinotama', 1.1); m.rotation.x = Math.PI / 2; m.position.y = 0.32; g.add(m);
+    return g;
+  }
   const g = new THREE.Group();
   g.add(mesh(GEO.sph, 0xff7a1a, 0.32, 0.32, 0.32, 0, 0.32, 0, { emissive: 0xa03a00 }));
   g.add(mesh(GEO.sph, 0xffe066, 0.2, 0.2, 0.2, 0, 0.34, -0.12, { emissive: 0x806000 }));
@@ -2740,7 +2940,7 @@ function defeat(e) {
   S.bossDone = true; S.cpU = Math.max(S.cpU, LV.fin - 2);
   removeBarrier(barExit); barExit = null;
   if (TG) TG.visible = false;
-  toast(e.kind === 'boss' ? 'ボスをたおした! ゴールへ!' : 'ちゅうボスをたおした! ゴールへ!', 2600);
+  toast(T(e.kind === 'boss' ? 'ボスをたおした! ゴールへ!' : 'ちゅうボスをたおした! ゴールへ!'), 2600);
 }
 function stompMini(e) {
   e.hp -= 1; e.inv = 1.2; e.state = 'hurt'; e.pt = 1.1; e.vx = e.vz = 0; e.flash = 1.0;
@@ -2762,8 +2962,8 @@ function startFight() {
   S.fightOn = true; S.cpU = LV.arena.a + 2;
   barEntry = addBarrier(LV.arena.a, true);
   sfx('wall'); S.shake = 0.35;
-  const how = P.power === 'whip' ? 'ムチ' : P.power === 'ice' ? 'アイス' : 'ファイア';
-  toast(LV.bossKind === 'boss' ? 'ボス ドラゴ大王! ' + how + 'でたおせ!' : 'ちゅうボス コドラ! ふんづけてたおせ!', 2600);
+  const how = T(P.power === 'whip' ? 'ムチ' : P.power === 'ice' ? 'アイス' : 'ファイア');
+  toast(LV.bossKind === 'boss' ? T('ボス ドラゴ大王! {how}でたおせ!', { how: how }) : T('ちゅうボス コドラ! ふんづけてたおせ!'), 2600);
 }
 function slam(e) {
   S.shake = 0.55; sfx('boom');
@@ -3228,7 +3428,7 @@ function updateEnemies(dt) {
         case 'shell': becomeShell(e); break;
         case 'wing': e.kind = 'gdango'; dropWings(e); break;
         case 'break': breakTsubo(e); break;
-        case 'sticky': kill(e, 'squish', 0); P.sticky = 4; toast('ねばねば! しばらくジャンプが低くなる', 1500); break;
+        case 'sticky': kill(e, 'squish', 0); P.sticky = 4; toast(T('ねばねば! しばらくジャンプが低くなる'), 1500); break;
         default: kill(e, 'fall', 0);
       }
       return;
@@ -3248,7 +3448,7 @@ function updateShots(dt) {
     if (!gone && S.mode === 'play') {
       const dx = P.x - s.x, dz = P.z - s.z, rr = s.r + P.hw;
       if (dx * dx + dz * dz < rr * rr && s.y + s.r > P.y && s.y - s.r < P.y + P.h) {
-        if (s.kind === 'ink') { S.ink = 3.2; toast('すみをかけられた!', 1200); } else hurt();
+        if (s.kind === 'ink') { S.ink = 3.2; toast(T('すみをかけられた!'), 1200); } else hurt();
         gone = true;
       }
     }
@@ -3300,8 +3500,11 @@ function buildGim(gm) {
     }
     case 'dash': {
       const g = new THREE.Group();
-      g.add(mesh(GEO.box, 0x2b3350, 1.8, 0.08, 2.2, 0, 0.04, 0));
-      for (let i = 0; i < 2; i++) { const a = mesh(GEO.cone, 0xffd84a, 0.5, 0.7, 0.06, 0, 0.1, 0.4 - i * 0.8, { emissive: 0x8a6a00 }); a.rotation.x = -Math.PI / 2; g.add(a); }
+      if (hasModel('gim_dashpad')) { const m = sitModel(wrapModel('gim_dashpad', 1.0)); m.position.y = 0.01; g.add(m); }
+      else {
+        g.add(mesh(GEO.box, 0x2b3350, 1.8, 0.08, 2.2, 0, 0.04, 0));
+        for (let i = 0; i < 2; i++) { const a = mesh(GEO.cone, 0xffd84a, 0.5, 0.7, 0.06, 0, 0.1, 0.4 - i * 0.8, { emissive: 0x8a6a00 }); a.rotation.x = -Math.PI / 2; g.add(a); }
+      }
       placeAt(g, gm.u, gm.x, 0, s); worldGroup.add(g);
       gims.push({ t: 'dash', r: cRect(gm.u - 1.1, gm.u + 1.1, gm.x - 0.9, gm.x + 0.9, s), fx: s.fx, fz: s.fz });
       break;
@@ -3319,7 +3522,12 @@ function buildGim(gm) {
       addBox(w[0] - 0.3, w[0] + 0.3, 0, 1.2, w[1] - 0.3, w[1] + 0.3, M(0x4a4a58));
       const bar = new THREE.Group(); bar.position.set(w[0], 0.95, w[1]); worldGroup.add(bar);
       const n = Math.round(gm.len / 0.45);
-      for (let i = 1; i <= n; i++) { const b = new THREE.Mesh(GEO.sphLo, i % 2 ? FX.pf1 : FX.pf2); b.scale.setScalar(0.2); b.position.x = i * 0.45; bar.add(b); }
+      if (hasModel('gim_spinbar')) {
+        /* 回転バーのモデル: 棒を片側だけにのばして、当たり判定と同じ長さにそろえる */
+        const m = wrapModel('gim_spinbar', 1.0), p = m.userData.p, L = n * 0.45 / K;
+        if (p.bar) { p.bar.scale.x = L / 16.5; p.bar.position.x = L / 2; m.position.y = -p.bar.position.y * K; }
+        bar.add(m);
+      } else for (let i = 1; i <= n; i++) { const b = new THREE.Mesh(GEO.sphLo, i % 2 ? FX.pf1 : FX.pf2); b.scale.setScalar(0.2); b.position.x = i * 0.45; bar.add(b); }
       gims.push({ t: 'spin', x: w[0], z: w[1], len: n * 0.45, sp: gm.sp, ang: hash2(gm.u * 10, 7) * 6, bar: bar });
       break;
     }
@@ -3327,12 +3535,15 @@ function buildGim(gm) {
       const y = 5.5, sz = 1.8;
       const sol = addBox(w[0] - sz / 2, w[0] + sz / 2, y, y + sz, w[1] - sz / 2, w[1] + sz / 2, null);
       const g = new THREE.Group();
+      if (hasModel('gim_crusher')) g.add(wrapModel('gim_crusher', sz / (5.5 * K)));
+      else {
       g.add(mesh(GEO.box, 0x8f8a96, sz, sz, sz, 0, sz / 2, 0));
       g.add(mesh(GEO.box, 0xffffff, 0.34, 0.24, 0.05, -0.38, sz * 0.62, -sz / 2 - 0.01)); g.add(mesh(GEO.box, 0xffffff, 0.34, 0.24, 0.05, 0.38, sz * 0.62, -sz / 2 - 0.01));
       g.add(mesh(GEO.box, 0x141a3a, 0.14, 0.14, 0.05, -0.38, sz * 0.6, -sz / 2 - 0.03)); g.add(mesh(GEO.box, 0x141a3a, 0.14, 0.14, 0.05, 0.38, sz * 0.6, -sz / 2 - 0.03));
       const b1 = mesh(GEO.box, 0x141a3a, 0.5, 0.08, 0.05, -0.38, sz * 0.8, -sz / 2 - 0.03); b1.rotation.z = -0.35; g.add(b1);
       const b2 = mesh(GEO.box, 0x141a3a, 0.5, 0.08, 0.05, 0.38, sz * 0.8, -sz / 2 - 0.03); b2.rotation.z = 0.35; g.add(b2);
       g.add(mesh(GEO.box, 0x141a3a, 0.9, 0.1, 0.05, 0, sz * 0.25, -sz / 2 - 0.03));
+      }
       g.position.set(w[0], y, w[1]); g.rotation.y = yawOf(s); worldGroup.add(g);
       const sh = new THREE.Mesh(GEO.disc, FX.shadow); sh.scale.setScalar(1.1); sh.position.set(w[0], 0.03, w[1]); worldGroup.add(sh);
       gims.push({ t: 'crush', s: sol, m: g, x: w[0], z: w[1], y0: y, y: y, vy: 0, st: 'wait', pt: 0, sz: sz });
@@ -3348,28 +3559,45 @@ function buildGim(gm) {
       break;
     }
     case 'lift': {
-      const pad = mesh(GEO.cyl24, 0x6a4ac0, 1.3, 0.16, 1.3, w[0], 0.08, w[1]); worldGroup.add(pad);
-      for (let i = 0; i < 3; i++) { const a = mesh(GEO.cone, 0x6af0ff, 0.22, 0.4, 0.22, w[0] + (i - 1) * 0.5, 0.4, w[1], { emissive: 0x1a6a76 }); worldGroup.add(a); spinners.push({ m: a, sp: 1, bob: 0.12, y0: 0.4 }); }
+      if (hasModel('gim_gravityfloor')) { const m = sitModel(wrapModel('gim_gravityfloor', 1.3)); m.position.set(w[0], 0.01, w[1]); m.rotation.y = s ? yawOf(s) : 0; worldGroup.add(m); }
+      else {
+        const pad = mesh(GEO.cyl24, 0x6a4ac0, 1.3, 0.16, 1.3, w[0], 0.08, w[1]); worldGroup.add(pad);
+        for (let i = 0; i < 3; i++) { const a = mesh(GEO.cone, 0x6af0ff, 0.22, 0.4, 0.22, w[0] + (i - 1) * 0.5, 0.4, w[1], { emissive: 0x1a6a76 }); worldGroup.add(a); spinners.push({ m: a, sp: 1, bob: 0.12, y0: 0.4 }); }
+      }
       const col = new THREE.Mesh(GEO.cyl24, FX.beam); col.scale.set(1.3, gm.top + 1.5, 1.3); col.position.set(w[0], (gm.top + 1.5) / 2, w[1]); worldGroup.add(col);
       gims.push({ t: 'lift', x: w[0], z: w[1], top: gm.top });
       break;
     }
     case 'chand': {
       const g = new THREE.Group();
-      g.add(mesh(GEO.cyl, 0xc9a24a, 0.03, 3, 0.03, 0, 1.5, 0));
-      const body = new THREE.Group(); g.add(body);
-      body.add(mesh(GEO.torus, 0xc9a24a, 0.9, 0.9, 0.9, 0, 0, 0)); body.children[0].rotation.x = Math.PI / 2;
-      body.add(mesh(GEO.cone, 0xc9a24a, 0.3, 0.6, 0.3, 0, -0.3, 0));
-      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; body.add(mesh(GEO.cyl, 0xfff0ca, 0.05, 0.25, 0.05, Math.cos(a) * 0.85, 0.15, Math.sin(a) * 0.85)); body.add(mesh(GEO.sph, 0xffb347, 0.06, 0.1, 0.06, Math.cos(a) * 0.85, 0.34, Math.sin(a) * 0.85, { emissive: 0xaa5a00 })); }
-      if (hasModel('manor_deco_candle')) void 0;
+      let body;
+      if (hasModel('gim_chandelier')) {
+        /* 同じモデルを2つ作り、くさり(落ちるときに消す)と本体に分ける */
+        const sc = 0.8, ch = wrapModel('gim_chandelier', sc), bd = wrapModel('gim_chandelier', sc);
+        let by = 0;
+        if (bd.userData.p.body) { bd.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(bd.userData.p.body); by = -(bb.min.y + bb.max.y) / 2; }
+        if (ch.userData.p.body) ch.userData.p.body.visible = false;
+        if (bd.userData.p.chain) bd.userData.p.chain.children.forEach(function (o) { if (o.isMesh) o.visible = false; });
+        ch.position.y = by; g.add(ch);
+        body = new THREE.Group(); bd.position.y = by; body.add(bd); g.add(body);
+      } else {
+        g.add(mesh(GEO.cyl, 0xc9a24a, 0.03, 3, 0.03, 0, 1.5, 0));
+        body = new THREE.Group(); g.add(body);
+        body.add(mesh(GEO.torus, 0xc9a24a, 0.9, 0.9, 0.9, 0, 0, 0)); body.children[0].rotation.x = Math.PI / 2;
+        body.add(mesh(GEO.cone, 0xc9a24a, 0.3, 0.6, 0.3, 0, -0.3, 0));
+        for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; body.add(mesh(GEO.cyl, 0xfff0ca, 0.05, 0.25, 0.05, Math.cos(a) * 0.85, 0.15, Math.sin(a) * 0.85)); body.add(mesh(GEO.sph, 0xffb347, 0.06, 0.1, 0.06, Math.cos(a) * 0.85, 0.34, Math.sin(a) * 0.85, { emissive: 0xaa5a00 })); }
+      }
       g.position.set(w[0], 6.2, w[1]); worldGroup.add(g);
       const lt = new THREE.PointLight(0xffc070, 0.7, 9); lt.position.set(0, -0.4, 0); body.add(lt);
       gims.push({ t: 'chand', g: g, body: body, x: w[0], z: w[1], y: 6.2, vy: 0, st: 'wait', pt: 0, u: gm.u });
       break;
     }
     case 'vent': {
-      worldGroup.add(mesh(GEO.cyl24, 0x7a4a9a, 0.6, 0.2, 0.6, w[0], 0.1, w[1]));
-      worldGroup.add(mesh(GEO.cyl24, 0xc8ff5a, 0.3, 0.22, 0.3, w[0], 0.11, w[1], { emissive: 0x4a7a10 }));
+      if (hasModel('gim_poisonvent')) { const m = sitModel(wrapModel('gim_poisonvent', 1.2)); m.scale.y = 0.55; m.position.set(w[0], 0, w[1]); worldGroup.add(m); }
+      else {
+        worldGroup.add(mesh(GEO.cyl24, 0x7a4a9a, 0.6, 0.2, 0.6, w[0], 0.1, w[1]));
+        worldGroup.add(mesh(GEO.cyl24, 0xc8ff5a, 0.3, 0.22, 0.3, w[0], 0.11, w[1], { emissive: 0x4a7a10 }));
+      }
       const gas = new THREE.Mesh(GEO.cyl24, FX.gas); gas.scale.set(0.8, 3, 0.8); gas.position.set(w[0], 1.5, w[1]); gas.visible = false; worldGroup.add(gas);
       gims.push({ t: 'vent', x: w[0], z: w[1], gas: gas, ph: hash2(gm.u * 10, 9) * 3 });
       break;
@@ -3516,15 +3744,17 @@ function updateGims(dt) {
     if (meteorT <= 0) {
       meteorT = 2.2 + Math.random() * 2;
       const c = w2c(P.x, P.z), s = segAt(c.u + 5), w = c2w(c.u + 3 + Math.random() * 8, clamp(c.x + (Math.random() - 0.5) * 6, -6.5, 6.5), s);
-      const m = hasModel('space_deco_star') ? new THREE.Mesh(GEO.sphLo, M(0x6a6478, { emissive: 0x5a2000 })) : new THREE.Mesh(GEO.sphLo, M(0x6a6478));
-      m.scale.setScalar(0.5); m.position.set(w[0], 16, w[1]); worldGroup.add(m);
+      let m;
+      if (hasModel('gim_meteor')) m = wrapModel('gim_meteor', 1.0);
+      else { m = new THREE.Mesh(GEO.sphLo, M(0x6a6478, { emissive: 0x5a2000 })); m.scale.setScalar(0.5); }
+      m.position.set(w[0], 16, w[1]); worldGroup.add(m);
       shockwave(w[0], w[1], 1.3, 0xff8a2a);
       gims.push({ t: 'meteor', m: m, x: w[0], z: w[1], y: 16, vy: -14 });
     }
   }
   for (let i = gims.length - 1; i >= 0; i--) {
     const g = gims[i]; if (g.t !== 'meteor') continue;
-    g.y += g.vy * dt; g.m.position.y = g.y;
+    g.y += g.vy * dt; g.m.position.y = g.y; g.m.rotation.x += dt * 3; g.m.rotation.z += dt * 2;
     if (g.y <= 0.3) {
       if (S.mode === 'play' && Math.hypot(P.x - g.x, P.z - g.z) < 1.3 && P.y < 1.5) hurt();
       burst(g.x, 0.3, g.z, 0xff8a2a, 10, 5, 0.16, 0.5); sfx('boom'); worldGroup.remove(g.m); gims.splice(i, 1);
@@ -3544,7 +3774,7 @@ function enterBonus() {
   if (!LV.bonusIn) return;
   S.inBonus = true; sfx('pipe'); flash();
   P.x = LV.bonusIn[0]; P.y = LV.bonusIn[1] + 0.2; P.z = LV.bonusIn[2]; P.vx = P.vy = P.vz = 0; P.yaw = 0; P.pitch = 0;
-  toast('かくし部屋! コインを集めて、おくの土管から出よう', 2400);
+  toast(T('かくし部屋! コインを集めて、おくの土管から出よう'), 2400);
   scene.fog.near = 30; scene.fog.far = 120;
 }
 function leaveBonus() {
@@ -3554,7 +3784,7 @@ function leaveBonus() {
   P.yaw = yawOf(segAt(b.exitU));
   gims.forEach(function (g) { if (g.t === 'warp') g.cd = 99; });
   applyTheme(LV.theme);
-  toast('もとの道にもどった!', 1400);
+  toast(T('もとの道にもどった!'), 1400);
 }
 
 /* ================= 見た目の動き ================= */
@@ -3672,7 +3902,7 @@ function animate(dt, t) {
         break;
       }
       case 'kaiga':
-        if (e.mode === 'wall') { m.rotation.y = Math.atan2(-e.wx, -e.wz); const lx = clamp((P.x - e.x) * 0.02, -0.04, 0.04); u.pupils.forEach(function (p) { p.position.y = 0.15 + clamp((P.y - e.y) * 0.02, -0.03, 0.03); void lx; }); }
+        if (e.mode === 'wall') { m.rotation.y = Math.atan2(-e.wx, -e.wz); const lx = clamp((P.x - e.x) * 0.02, -0.04, 0.04); u.pupils.forEach(function (p) { p.position.y = 0.15 + clamp((P.y - e.y) * 0.02, -0.03, 0.03); void lx; }); if (u.eyes) u.eyes.forEach(function (o, i) { o.position.y = u.ey0[i] + clamp((P.y - e.y) * 0.05, -0.08, 0.08); }); }
         else { m.rotation.z += dt * 8; }
         break;
       case 'kabe': case 'togeguru': {
@@ -3753,34 +3983,34 @@ function applyCamera(dt, t) {
 /* ================= HUD ================= */
 const HC = {};
 function setText(node, key, v) { if (node && HC[key] !== v) { HC[key] = v; node.textContent = v; } }
-function stateName() { if (P.mini > 0) return 'ミニ'; if (P.state === 2 && P.power) return POWER_NAME[P.power]; return P.state > 0 ? 'おおきい' : 'ちいさい'; }
+function stateName() { if (P.mini > 0) return T('ミニ'); if (P.state === 2 && P.power) return T(POWER_NAME[P.power]); return T(P.state > 0 ? 'おおきい' : 'ちいさい'); }
 function updateHud() {
   setText(E.stage, 'stg', String(S.stage));
   setText(E.score, 's', pad(S.score, 6));
   setText(E.coins, 'c', pad(S.coins, 2));
   setText(E.time, 't', String(Math.max(0, Math.ceil(S.timeF))));
   setText(E.lives, 'l', String(Math.max(0, S.lives)));
-  setText(E.theme, 'th', TH.name + (S.play === 'daily' ? ' ・きょうのステージ' : S.play === 'challenge' ? ' ・ちょうせん' : ''));
+  setText(E.theme, 'th', thName(TH) + (S.play === 'daily' ? T(' ・') + T('きょうのステージ') : S.play === 'challenge' ? T(' ・') + T('ちょうせん') : ''));
   const sn = stateName();
   if (HC.st !== sn) { HC.st = sn; E.state.textContent = sn; E.state.dataset.s = P.state === 2 ? (P.power || 'fire') : String(P.state); }
   const canAtk = P.state === 2 && !!P.power;
-  if (HC.fs !== canAtk + (P.power || '')) { HC.fs = canAtk + (P.power || ''); tFire.classList.toggle('off', !canAtk); tFire.dataset.p = P.power || ''; tFire.textContent = P.power === 'whip' ? 'ムチ' : P.power === 'ice' ? 'アイス' : 'ファイア'; }
+  if (HC.fs !== canAtk + (P.power || '')) { HC.fs = canAtk + (P.power || ''); tFire.classList.toggle('off', !canAtk); tFire.dataset.p = P.power || ''; tFire.textContent = T(P.power === 'whip' ? 'ムチ' : P.power === 'ice' ? 'アイス' : P.power === 'fire' ? 'ファイア' : 'こうげき'); }
   let rd = ''; for (let i = 0; i < 5; i++) rd += '<i class="' + (S.redsGot.indexOf(i) >= 0 ? 'on' : '') + '"></i>';
   if (HC.rd !== rd) { HC.rd = rd; E.reds.innerHTML = rd; }
   const bf = [];
-  if (P.star > 0) bf.push(['むてき', P.star, 'star']);
-  if (P.boots > 0) bf.push(['ブーツ', P.boots, 'boots']);
-  if (P.cape > 0) bf.push(['マント', P.cape, 'cape']);
-  if (P.mini > 0) bf.push(['ミニ', P.mini, 'mini']);
-  if (P.magnet > 0) bf.push(['じしゃく', P.magnet, 'mag']);
-  if (S.slowT > 0) bf.push(['スロー', S.slowT, 'slow']);
-  if (P.sticky > 0) bf.push(['ねばねば', P.sticky, 'sticky']);
-  if (P.barrier) bf.push(['バリア', -1, 'bar']);
+  if (P.star > 0) bf.push([T('むてき'), P.star, 'star']);
+  if (P.boots > 0) bf.push([T('ブーツ'), P.boots, 'boots']);
+  if (P.cape > 0) bf.push([T('マント'), P.cape, 'cape']);
+  if (P.mini > 0) bf.push([T('ミニ'), P.mini, 'mini']);
+  if (P.magnet > 0) bf.push([T('じしゃく'), P.magnet, 'mag']);
+  if (S.slowT > 0) bf.push([T('スロー'), S.slowT, 'slow']);
+  if (P.sticky > 0) bf.push([T('ねばねば'), P.sticky, 'sticky']);
+  if (P.barrier) bf.push([T('バリア'), -1, 'bar']);
   const bh = bf.map(function (b) { return '<span class="buff ' + b[2] + '">' + b[0] + (b[1] >= 0 ? ' ' + Math.ceil(b[1]) : '') + '</span>'; }).join('');
   if (HC.bf !== bh) { HC.bf = bh; E.buffs.innerHTML = bh; }
   const showBar = !!(S.boss && S.fightOn && !S.bossDone && !S.boss.dead);
   if (HC.bb !== showBar) { HC.bb = showBar; E.bossbar.hidden = !showBar; }
-  if (showBar && HC.bn !== S.boss.name) { HC.bn = S.boss.name; E.bossName.textContent = S.boss.name; }
+  if (showBar && HC.bn !== S.boss.name) { HC.bn = S.boss.name; E.bossName.textContent = T(S.boss.name); }
   if (showBar) { const w = Math.round(clamp(S.boss.hp / S.boss.maxhp, 0, 1) * 100); if (HC.bw !== w) { HC.bw = w; E.bossFill.style.width = w + '%'; } }
   const st = P.stun > 0;
   if (HC.sf !== st) { HC.sf = st; E.stunfx.classList.toggle('on', st); }
@@ -3802,9 +4032,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.2', GAME_DATE = '2026年11月25日', GEN_VER = 4;
+const GAME_VER = '4.3', GAME_DATE = '2026-11-25', GEN_VER = 4;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.3', t: ['言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）', '敵・アイテム・しかけの3Dモデルを新しくしました'] },
   { v: '4.2', t: ['ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました'] },
   { v: '4.1', t: ['Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました', 'ちょうせんリンクがバージョンに対応しました'] },
   { v: '4.0', t: ['8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました', 'きょうのステージ、ちょうせんリンク、ゴーストを追加しました'] }
@@ -3815,8 +4046,8 @@ function verNum(v) { const a = String(v).split('.'); return (+a[0] || 0) * 1000 
 function updateNote() {
   if (!SEEN_VER || verNum(SEEN_VER) >= verNum(GAME_VER)) return '';
   const items = CHANGELOG.filter(function (c) { return verNum(c.v) > verNum(SEEN_VER); }).slice(0, 2);
-  let li = ''; items.forEach(function (c) { c.t.forEach(function (x) { li += '<li>' + esc(x) + '</li>'; }); });
-  return '<div class="updnote"><b>アップデートしました（バージョン ' + GAME_VER + '）</b><ul>' + li + '</ul></div>';
+  let li = ''; items.forEach(function (c) { c.t.forEach(function (x) { li += '<li>' + esc(T(x)) + '</li>'; }); });
+  return '<div class="updnote"><b>' + esc(T('アップデートしました（バージョン {v}）', { v: GAME_VER })) + '</b><ul>' + li + '</ul></div>';
 }
 /* ================= シェア ================= */
 const GAME_URL_DEFAULT = 'https://claude.ai/artifact/Ahd5z1pZ1xwjYEsYJSTG8v';
@@ -3828,16 +4059,17 @@ function gameUrl() {
   return GAME_URL_DEFAULT;
 }
 function stageLink() { return gameUrl() + '#stage-' + S.stage + '-' + (S.seed >>> 0).toString(36) + '-g' + GEN_VER; }
+function shareTags() { return T('#POVJump #gamedev #ゲーム開発'); }
 function shareText() {
-  const head = S.play === 'daily' ? 'きょうのステージ（' + TH.name + '）をクリア！' : 'ステージ' + S.stage + '（' + TH.name + '）をクリア！';
-  return 'POV Jumpで' + head + '\nスコア ' + pad(S.score, 6) + (S.reds >= 5 ? '（赤コイン5まい！）' : '') + '\nこのステージに挑戦してね\n#POVJump #gamedev #ゲーム開発';
+  const head = S.play === 'daily' ? T('きょうのステージ（{t}）', { t: thName(TH) }) : T('ステージ{n}（{t}）', { n: S.stage, t: thName(TH) });
+  return T('POV Jumpで{h}をクリア！', { h: head }) + '\n' + T('スコア {s}', { s: pad(S.score, 6) }) + (S.reds >= 5 ? T('（赤コイン5まい！）') : '') + '\n' + T('このステージに挑戦してね') + '\n' + shareTags();
 }
 function xUrl() { return 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText()) + '&url=' + encodeURIComponent(stageLink()); }
 function copyShare(btn) {
   const t = shareText() + ' ' + stageLink();
   try {
-    navigator.clipboard.writeText(t).then(function () { btn.textContent = 'コピーしました'; }, function () { btn.textContent = 'コピーできませんでした'; });
-  } catch (e) { btn.textContent = 'コピーできませんでした'; }
+    navigator.clipboard.writeText(t).then(function () { btn.textContent = T('コピーしました'); }, function () { btn.textContent = T('コピーできませんでした'); });
+  } catch (e) { btn.textContent = T('コピーできませんでした'); }
 }
 /* シェア用の画像。fmt: 'x' = 横長(Xなど 1200x675) / 'story' = 縦長(ストーリーズ 1080x1920) */
 function cardImage(fmt) {
@@ -3855,28 +4087,29 @@ function cardImage(fmt) {
     else g.drawImage(img, 0, 0, img.width, img.height, 80, 420, 920, 920 / ar);
   } catch (e) {}
   hand.visible = hv;
-  const big = '900 ', round = '"M PLUS Rounded 1c", sans-serif', dot = '"DotGothic16", monospace';
-  const title = S.play === 'daily' ? 'きょうのステージ クリア!' : 'ステージ ' + S.stage + ' クリア!';
+  const big = '900 ', round = fontRound(), dot = '"DotGothic16", monospace', tags = shareTags();
+  const title = S.play === 'daily' ? T('きょうのステージ クリア!') : T('ステージ {n} クリア!', { n: S.stage });
+  const where = T('{t} のステージ', { t: thName(TH) });
   g.textAlign = 'center';
   if (X) {
     const vg = g.createLinearGradient(0, 0, W, 0); vg.addColorStop(0, 'rgba(20,26,58,.92)'); vg.addColorStop(0.62, 'rgba(20,26,58,.6)'); vg.addColorStop(1, 'rgba(20,26,58,0)');
     g.fillStyle = vg; g.fillRect(0, 0, W, Hh);
     g.textAlign = 'left';
     g.fillStyle = '#ffc93c'; g.font = big + '96px ' + round; g.fillText('POV Jump', 64, 150);
-    g.fillStyle = '#fff7e3'; g.font = '800 52px ' + round; g.fillText(title, 64, 250);
-    g.font = '700 34px ' + round; g.fillText(TH.name + ' のステージ', 64, 306);
-    g.font = '700 30px ' + round; g.fillText('スコア', 64, 390);
+    g.fillStyle = '#fff7e3'; g.font = '800 52px ' + round; g.fillText(title, 64, 250, 760);
+    g.font = '700 34px ' + round; g.fillText(where, 64, 306, 760);
+    g.font = '700 30px ' + round; g.fillText(T('スコア'), 64, 390, 760);
     g.fillStyle = '#ffc93c'; g.font = '400 120px ' + dot; g.fillText(pad(S.score, 6), 56, 500);
-    g.fillStyle = '#fff7e3'; g.font = '700 30px ' + round; g.fillText('コイン ' + S.coins + '   赤コイン ' + S.reds + '/5' + (S.play !== 'normal' ? '   タイム ' + S.stageT.toFixed(1) + 'びょう' : ''), 64, 568);
-    g.font = '700 26px ' + round; g.globalAlpha = 0.85; g.fillText('#POVJump  #gamedev  #ゲーム開発', 64, 628); g.globalAlpha = 1;
+    g.fillStyle = '#fff7e3'; g.font = '700 30px ' + round; g.fillText(T('コイン {c}   赤コイン {r}/5', { c: S.coins, r: S.reds }) + (S.play !== 'normal' ? '   ' + T('タイム {t}びょう', { t: S.stageT.toFixed(1) }) : ''), 64, 568, 1072);
+    g.font = '700 26px ' + round; g.globalAlpha = 0.85; g.fillText(tags.split(' ').join('  '), 64, 628, 1072); g.globalAlpha = 1;
   } else {
     g.fillStyle = '#141a3a'; g.globalAlpha = 0.82; g.fillRect(60, 1180, 960, 560); g.globalAlpha = 1;
     g.fillStyle = '#fff7e3'; g.font = big + '120px ' + round; g.fillText('POV Jump', 540, 260);
-    g.font = '800 64px ' + round; g.fillText(title, 540, 1290);
-    g.font = '700 48px ' + round; g.fillText(TH.name + ' のステージ', 540, 1380);
+    g.font = '800 64px ' + round; g.fillText(title, 540, 1290, 900);
+    g.font = '700 48px ' + round; g.fillText(where, 540, 1380, 900);
     g.fillStyle = '#ffc93c'; g.font = '400 110px ' + dot; g.fillText(pad(S.score, 6), 540, 1530);
-    g.fillStyle = '#fff7e3'; g.font = '700 44px ' + round; g.fillText('コイン ' + S.coins + '  ・  赤コイン ' + S.reds + '/5', 540, 1630);
-    g.font = '700 40px ' + round; g.fillText('#POVJump #gamedev #ゲーム開発', 540, 1820);
+    g.fillStyle = '#fff7e3'; g.font = '700 44px ' + round; g.fillText(T('コイン {c}  ・  赤コイン {r}/5', { c: S.coins, r: S.reds }), 540, 1630, 900);
+    g.font = '700 40px ' + round; g.fillText(tags, 540, 1820, 960);
   }
   try { return c.toDataURL('image/png'); } catch (e) { return ''; }
 }
@@ -3893,13 +4126,13 @@ function prepareShareImage() {
 function shareMsg(t) { const m = $('shareMsg'); if (m) m.textContent = t; }
 /* Xでシェア: 画像をクリップボードにコピーしてから、投稿画面を開く(パソコンは貼り付けで画像が付く) */
 function xShare() {
-  if (!SHARE_IMG || !SHARE_IMG.blob) { shareMsg('Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。'); return; }
+  if (!SHARE_IMG || !SHARE_IMG.blob) { shareMsg(T('Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。')); return; }
   try {
     if (!navigator.clipboard || !window.ClipboardItem) throw new Error('no');
     navigator.clipboard.write([new ClipboardItem({ 'image/png': SHARE_IMG.blob })]).then(function () {
-      shareMsg('画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。');
-    }, function () { shareMsg('Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。'); showSaveX(); });
-  } catch (e) { shareMsg('Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。'); showSaveX(); }
+      shareMsg(T('画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。'));
+    }, function () { shareMsg(T('Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。')); showSaveX(); });
+  } catch (e) { shareMsg(T('Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。')); showSaveX(); }
 }
 function showSaveX() { const b = $('saveX'); if (b) b.hidden = false; }
 /* スマホ: 共有メニューに画像ごと渡す(Xアプリを選べば画像つきで投稿できる) */
@@ -3911,8 +4144,8 @@ function imageShare() {
       const f = new File([SHARE_IMG.blob], 'povjump-stage' + S.stage + '.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [f] })) data.files = [f];
     }
-    navigator.share(data).then(function () { shareMsg('シェアしました。'); }, function () {});
-  } catch (e) { shareMsg('この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。'); showSaveX(); }
+    navigator.share(data).then(function () { shareMsg(T('シェアしました。')); }, function () {});
+  } catch (e) { shareMsg(T('この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。')); showSaveX(); }
 }
 /* ================= ゴースト(自己ベストの走り) ================= */
 function ghostKey() { return 'pyonran-ghost-g' + GEN_VER + '-' + S.play + '-' + S.stage + '-' + (S.seed >>> 0).toString(36); }
@@ -3933,7 +4166,7 @@ function saveGhostIfBest() {
 function todayInfo() {
   const d = new Date(), y = d.getFullYear(), m = d.getMonth() + 1, dd = d.getDate();
   const day = Math.floor(Date.UTC(y, m - 1, dd) / 86400000);
-  return { seed: y * 10000 + m * 100 + dd, stage: (day % 40) + 1, label: y + '年' + m + '月' + dd + '日' };
+  return { seed: y * 10000 + m * 100 + dd, stage: (day % 40) + 1 };
 }
 function readHash() {
   let h = '';
@@ -3946,26 +4179,30 @@ function readHash() {
 let INVITE = readHash();
 
 /* ================= overlay / flow ================= */
-const KEYS_HTML = '<div class="keys">' +
-  '<div><span class="kc"><kbd>W</kbd><kbd>S</kbd></span><span>前へ / 後ろへ</span></div>' +
-  '<div><span class="kc"><kbd>D</kbd></span><span>ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）</span></div>' +
-  '<div><span class="kc"><kbd>A</kbd><i>+</i><kbd>W</kbd></span><span>ダッシュ（Sでも走れます）</span></div>' +
-  '<div><span class="kc"><kbd>Z</kbd></span><span>こうげき（ファイア・アイス・ムチを取ると使えます）</span></div>' +
-  '<div><span class="kc"><kbd>マウス</kbd></span><span>見まわす（矢印キーでも見まわせます）</span></div>' +
-  '</div>';
-const TOUCH_HTML = '<div class="keys t">' +
-  '<div><span class="kc"><kbd>左スティック</kbd></span><span>丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ</span></div>' +
-  '<div><span class="kc"><kbd>ジャンプ</kbd></span><span>押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ</span></div>' +
-  '<div><span class="kc"><kbd>こうげき</kbd></span><span>ファイア・アイス・ムチを取ると使えます</span></div>' +
-  '<div><span class="kc"><kbd>なぞる</kbd></span><span>画面をなぞって見まわします</span></div>' +
-  '</div>';
-function helpHtml() { return IS.touch ? TOUCH_HTML : KEYS_HTML; }
+function keysHtml() {
+  return '<div class="keys">' +
+    '<div><span class="kc"><kbd>W</kbd><kbd>S</kbd></span><span>' + T('前へ / 後ろへ') + '</span></div>' +
+    '<div><span class="kc"><kbd>D</kbd></span><span>' + T('ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）') + '</span></div>' +
+    '<div><span class="kc"><kbd>A</kbd><i>+</i><kbd>W</kbd></span><span>' + T('ダッシュ（Sでも走れます）') + '</span></div>' +
+    '<div><span class="kc"><kbd>Z</kbd></span><span>' + T('こうげき（ファイア・アイス・ムチを取ると使えます）') + '</span></div>' +
+    '<div><span class="kc"><kbd>' + T('マウス') + '</kbd></span><span>' + T('見まわす（矢印キーでも見まわせます）') + '</span></div>' +
+    '</div>';
+}
+function touchHtml() {
+  return '<div class="keys t">' +
+    '<div><span class="kc"><kbd>' + T('左スティック') + '</kbd></span><span>' + T('丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ') + '</span></div>' +
+    '<div><span class="kc"><kbd>' + T('ジャンプ') + '</kbd></span><span>' + T('押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ') + '</span></div>' +
+    '<div><span class="kc"><kbd>' + T('こうげき') + '</kbd></span><span>' + T('ファイア・アイス・ムチを取ると使えます') + '</span></div>' +
+    '<div><span class="kc"><kbd>' + T('なぞる') + '</kbd></span><span>' + T('画面をなぞって見まわします') + '</span></div>' +
+    '</div>';
+}
+function helpHtml() { return IS.touch ? touchHtml() : keysHtml(); }
 function stageNote(n) {
   const th = THEMES[themeOf(n)];
   const parts = [];
-  if ((n - 1) % 5 === 0) parts.push('ここから「' + th.name + '」のステージ。' + ({ forest: '', sea: '水に入ると、動きがおそくなります。', poison: '毒の水たまりに長くいると、ダメージを受けます。', lava: 'マグマに落ちるとミス。ほのおの噴き出しに注意。', manor: '暗い屋敷。ライトで照らして進みます。', sky: 'トランポリンで、空の高い足場へ行けます。', ice: '氷の床はすべります。', space: '重力が弱く、高く跳べます。' }[th.id] || ''));
-  if (n % 10 === 5) parts.push('ゴール前に、ちゅうボスがまっています。');
-  if (n % 10 === 0) parts.push('ゴール前に、ボスがまっています。');
+  if ((n - 1) % 5 === 0) { const tip = { forest: '', sea: '水に入ると、動きがおそくなります。', poison: '毒の水たまりに長くいると、ダメージを受けます。', lava: 'マグマに落ちるとミス。ほのおの噴き出しに注意。', manor: '暗い屋敷。ライトで照らして進みます。', sky: 'トランポリンで、空の高い足場へ行けます。', ice: '氷の床はすべります。', space: '重力が弱く、高く跳べます。' }[th.id] || ''; parts.push(T('ここから「{t}」のステージ。', { t: thName(th) }) + (tip ? ' ' + T(tip) : '')); }
+  if (n % 10 === 5) parts.push(T('ゴール前に、ちゅうボスがまっています。'));
+  if (n % 10 === 0) parts.push(T('ゴール前に、ボスがまっています。'));
   return parts.join(' ');
 }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -3973,44 +4210,47 @@ const TPL = {
   title: function () {
     const td = todayInfo();
     let inv = '';
-    if (INVITE && INVITE.kind === 'challenge') inv = '<div class="invite"><b>ちょうせんが とどいています</b><span>ステージ ' + INVITE.stage + '（' + THEMES[themeOf(INVITE.stage)].name + '）</span>' + (INVITE.gen !== GEN_VER ? '<span class="small">ゲームが更新されたため、送られたときとステージの形が少し変わっています。</span>' : '') + '<button class="btn" data-act="challenge">このステージに ちょうせん</button></div>';
-    return '<div class="card"><p class="eyebrow">FPS ジャンプアクション</p><h1>POV Jump</h1>' +
-      '<p class="lead">一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、もり・うみ・どくのぬま・マグマ・やしき・そら・こおり・うちゅうと景色が変わります。</p>' +
+    if (INVITE && INVITE.kind === 'challenge') inv = '<div class="invite"><b>' + T('ちょうせんが とどいています') + '</b><span>' + T('ステージ {n}（{t}）', { n: INVITE.stage, t: thName(THEMES[themeOf(INVITE.stage)]) }) + '</span>' + (INVITE.gen !== GEN_VER ? '<span class="small">' + T('ゲームが更新されたため、送られたときとステージの形が少し変わっています。') + '</span>' : '') + '<button class="btn" data-act="challenge">' + T('このステージに ちょうせん') + '</button></div>';
+    const worlds = THEMES.map(function (t) { return thName(t); }).join(T('・'));
+    return '<div class="card">' + langSelect() + '<p class="eyebrow">' + T('FPS ジャンプアクション') + '</p><h1>POV Jump</h1>' +
+      '<p class="lead">' + T('一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。', { w: worlds }) + '</p>' +
       inv + updateNote() + helpHtml() +
-      '<div class="btns"><button class="btn" data-act="start">はじめる</button><button class="btn sub" data-act="daily">きょうのステージ</button><button class="btn sub" data-act="settings">せってい</button></div>' +
-      '<p class="small">' + (MODELS.ready ? '' : MODELS.failed ? 'キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。' : 'キャラクターを読みこみ中…') + (IS.touch ? '横向きにすると遊びやすくなります。' : 'Enter キーでも始められます。') + 'バージョン ' + GAME_VER + '（' + GAME_DATE + ' 更新）／ ハイスコア ' + pad(S.best, 6) + ' ／ とうたつステージ ' + S.bestStage + ' ／ きょうのステージは ' + td.stage + '（' + THEMES[themeOf(td.stage)].name + '）</p></div>';
+      '<div class="btns"><button class="btn" data-act="start">' + T('はじめる') + '</button><button class="btn sub" data-act="daily">' + T('きょうのステージ') + '</button><button class="btn sub" data-act="settings">' + T('せってい') + '</button></div>' +
+      '<p class="small">' + (MODELS.ready ? '' : T(MODELS.failed ? 'キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。' : 'キャラクターを読みこみ中…') + ' ') + T(IS.touch ? '横向きにすると遊びやすくなります。' : 'Enter キーでも始められます。') + ' ' +
+      T('バージョン {v}（{d} 更新）', { v: GAME_VER, d: fmtDate(GAME_DATE) }) + ' ／ ' + T('ハイスコア {s}', { s: pad(S.best, 6) }) + ' ／ ' + T('とうたつステージ {n}', { n: S.bestStage }) + ' ／ ' + T('きょうのステージは {n}（{t}）', { n: td.stage, t: thName(THEMES[themeOf(td.stage)]) }) + '</p></div>';
   },
   pause: function () {
-    return '<div class="card"><h2>ポーズ</h2>' + helpHtml() +
-      '<div class="btns"><button class="btn" data-act="resume">つづける</button><button class="btn sub" data-act="settings">せってい</button><button class="btn sub" data-act="restart">' + (S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div></div>';
+    return '<div class="card"><h2>' + T('ポーズ') + '</h2>' + helpHtml() +
+      '<div class="btns"><button class="btn" data-act="resume">' + T('つづける') + '</button><button class="btn sub" data-act="settings">' + T('せってい') + '</button><button class="btn sub" data-act="restart">' + T(S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div></div>';
   },
   settings: function () {
-    return '<div class="card"><h2>せってい</h2><div class="set">' +
-      '<div class="srow"><label for="sVol">おんりょう</label><input type="range" id="sVol" min="0" max="100" step="1" value="' + CFG.vol + '"><b id="sVolV">' + CFG.vol + '</b></div>' +
-      '<div class="srow"><label for="sMute">ミュート</label><input type="checkbox" id="sMute"' + (S.muted ? ' checked' : '') + '></div>' +
-      '<div class="srow"><label for="sSens">視点のかんど</label><input type="range" id="sSens" min="0.3" max="3" step="0.05" value="' + CFG.sens + '"><b id="sSensV">' + CFG.sens.toFixed(2) + '</b></div>' +
-      '</div><p class="small">視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。</p>' +
-      '<button class="btn" data-act="back">もどる</button></div>';
+    return '<div class="card"><h2>' + T('せってい') + '</h2><div class="set">' +
+      '<div class="srow lrow"><label>' + (LANG === 'en' ? 'Language' : T('ことば') + ' / Language') + '</label>' + langButtons() + '</div>' +
+      '<div class="srow"><label for="sVol">' + T('おんりょう') + '</label><input type="range" id="sVol" min="0" max="100" step="1" value="' + CFG.vol + '"><b id="sVolV">' + CFG.vol + '</b></div>' +
+      '<div class="srow"><label for="sMute">' + T('ミュート') + '</label><input type="checkbox" id="sMute"' + (S.muted ? ' checked' : '') + '></div>' +
+      '<div class="srow"><label for="sSens">' + T('視点のかんど') + '</label><input type="range" id="sSens" min="0.3" max="3" step="0.05" value="' + CFG.sens + '"><b id="sSensV">' + CFG.sens.toFixed(2) + '</b></div>' +
+      '</div><p class="small">' + T('視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。') + '</p>' +
+      '<button class="btn" data-act="back">' + T('もどる') + '</button></div>';
   },
   over: function () {
-    return '<div class="card"><h2>ゲームオーバー</h2><div class="result"><span>とうたつステージ</span><b>' + S.stage + '</b><span>スコア</span><b>' + pad(S.score, 6) + '</b><span>コイン</span><b>' + pad(S.coins, 2) + '</b></div>' +
-      '<div class="btns"><button class="btn" data-act="restart">' + (S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div><p class="small">R キーでも再挑戦できます。</p></div>';
+    return '<div class="card"><h2>' + T('ゲームオーバー') + '</h2><div class="result"><span>' + T('とうたつステージ') + '</span><b>' + S.stage + '</b><span>' + T('スコア') + '</span><b>' + pad(S.score, 6) + '</b><span>' + T('コイン') + '</span><b>' + pad(S.coins, 2) + '</b></div>' +
+      '<div class="btns"><button class="btn" data-act="restart">' + T(S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div><p class="small">' + T('R キーでも再挑戦できます。') + '</p></div>';
   },
   clear: function () {
     const n = S.stage + 1, note = stageNote(n), solo = S.play !== 'normal';
-    const time = solo ? '<span>タイム</span><b>' + S.stageT.toFixed(1) + 'びょう</b><span class="hi">じこベスト</span><span class="hi"><b>' + (S.ghostBest || S.stageT).toFixed(1) + '</b></span>' : '';
-    return '<div class="card"><p class="eyebrow">' + (S.play === 'daily' ? 'きょうのステージ ' : 'ステージ ') + S.stage + '（' + TH.name + '）</p><h2>クリア!' + (S.newBest ? ' 自己ベスト!' : '') + '</h2>' +
-      '<div class="result"><span>タイムボーナス</span><b>' + pad(S.bonus, 5) + '</b><span>赤コイン</span><b>' + S.reds + ' / 5</b><span>スコア</span><b>' + pad(S.score, 6) + '</b>' + time +
-      (solo ? '' : '<span class="hi">ハイスコア</span><span class="hi"><b>' + pad(S.best, 6) + '</b></span>') + '</div>' +
+    const time = solo ? '<span>' + T('タイム') + '</span><b>' + T('{t}びょう', { t: S.stageT.toFixed(1) }) + '</b><span class="hi">' + T('じこベスト') + '</span><span class="hi"><b>' + (S.ghostBest || S.stageT).toFixed(1) + '</b></span>' : '';
+    return '<div class="card"><p class="eyebrow">' + T(S.play === 'daily' ? 'きょうのステージ {n}（{t}）' : 'ステージ {n}（{t}）', { n: S.stage, t: thName(TH) }) + '</p><h2>' + T('クリア!') + (S.newBest ? ' ' + T('自己ベスト!') : '') + '</h2>' +
+      '<div class="result"><span>' + T('タイムボーナス') + '</span><b>' + pad(S.bonus, 5) + '</b><span>' + T('赤コイン') + '</span><b>' + S.reds + ' / 5</b><span>' + T('スコア') + '</span><b>' + pad(S.score, 6) + '</b>' + time +
+      (solo ? '' : '<span class="hi">' + T('ハイスコア') + '</span><span class="hi"><b>' + pad(S.best, 6) + '</b></span>') + '</div>' +
       (note && !solo ? '<p class="hint">' + note + '</p>' : '') +
-      '<div class="btns">' + (solo ? '<button class="btn" data-act="title">タイトルへ</button>' : '<button class="btn" data-act="next">ステージ ' + n + ' へ</button>') + '</div>' +
-      '<div class="share"><p class="small">このゲームを広める</p><div class="btns">' +
-      '<a class="btn sns x" data-act="xshare" href="' + esc(xUrl()) + '" target="_blank" rel="noopener">Xでシェア（画像つき）</a>' +
-      '<button class="btn sns" data-act="share">スマホで画像つきシェア</button><button class="btn sns" data-act="copy">リンクをコピー</button></div>' +
-      '<div class="xprev"><img id="xPreview" alt="シェアする画像"><div><p class="small" id="shareMsg">スコアの入った画像と、#gamedev #ゲーム開発 のハッシュタグが付きます。</p>' +
-      '<div class="btns"><button class="btn sns" id="saveX" data-act="savex" hidden>画像を保存</button><button class="btn sns" data-act="card">ストーリーズ用（縦長）</button></div></div></div>' +
+      '<div class="btns">' + (solo ? '<button class="btn" data-act="title">' + T('タイトルへ') + '</button>' : '<button class="btn" data-act="next">' + T('ステージ {n} へ', { n: n }) + '</button>') + '</div>' +
+      '<div class="share"><p class="small">' + T('このゲームを広める') + '</p><div class="btns">' +
+      '<a class="btn sns x" data-act="xshare" href="' + esc(xUrl()) + '" target="_blank" rel="noopener">' + T('Xでシェア（画像つき）') + '</a>' +
+      '<button class="btn sns" data-act="share">' + T('スマホで画像つきシェア') + '</button><button class="btn sns" data-act="copy">' + T('リンクをコピー') + '</button></div>' +
+      '<div class="xprev"><img id="xPreview" alt="' + esc(T('シェアする画像')) + '"><div><p class="small" id="shareMsg">' + esc(T('スコアの入った画像と、{tags} のハッシュタグが付きます。', { tags: shareTags().split(' ').slice(1).join(' ') })) + '</p>' +
+      '<div class="btns"><button class="btn sns" id="saveX" data-act="savex" hidden>' + T('画像を保存') + '</button><button class="btn sns" data-act="card">' + T('ストーリーズ用（縦長）') + '</button></div></div></div>' +
       '<div id="cardOut"></div></div>' +
-      (solo ? '' : '<p class="small">Enter キーでも進めます。R キーでステージ1から。</p>') + '</div>';
+      (solo ? '' : '<p class="small">' + T('Enter キーでも進めます。R キーでステージ1から。') + '</p>') + '</div>';
   }
 };
 function showOverlay(kind) {
@@ -4040,13 +4280,13 @@ function startStage(keep) {
   crowT = 10; meteorT = 6;
   buildWorld(); resetPlayer(0, keep);
   S.mode = 'play'; hideOverlay();
-  toast((S.play === 'daily' ? 'きょうのステージ ' : 'ステージ ') + S.stage + '「' + TH.name + '」スタート!' + (LV.bossKind ? (LV.bossKind === 'boss' ? ' ボスせん' : ' ちゅうボスせん') : ''), 2200);
-  if (S.stage === 1 && S.play === 'normal') setTimeout(function () { if (S.mode === 'play' && S.stage === 1 && (IS.touch || !document.pointerLockElement)) toast(IS.touch ? '画面をなぞって見まわせます' : '矢印キーかドラッグで見まわせます', 2600); }, 2400);
+  toast(T(S.play === 'daily' ? 'きょうのステージ {n}「{t}」スタート!' : 'ステージ {n}「{t}」スタート!', { n: S.stage, t: thName(TH) }) + (LV.bossKind ? ' ' + T(LV.bossKind === 'boss' ? 'ボスせん' : 'ちゅうボスせん') : ''), 2200);
+  if (S.stage === 1 && S.play === 'normal') setTimeout(function () { if (S.mode === 'play' && S.stage === 1 && (IS.touch || !document.pointerLockElement)) toast(T(IS.touch ? '画面をなぞって見まわせます' : '矢印キーかドラッグで見まわせます'), 2600); }, 2400);
 }
 function newGame(play, stage, seed) {
   S.play = play || 'normal';
   S.lives = 3; S.score = 0; S.coins = 0; S.stage = stage || 1; S.seed = seed === undefined ? (Math.random() * 1e9) >>> 0 : seed;
-  track('game_start', { mode: S.play, stage: S.stage, ver: GAME_VER });
+  track('game_start', { mode: S.play, stage: S.stage, ver: GAME_VER, lang: LANG });
   startStage(false);
 }
 function nextStage() { S.stage++; startStage(true); }
@@ -4054,7 +4294,7 @@ function respawn() {
   S.timeF = LV.time; HC.clearShown = false;
   buildWorld(); resetPlayer(S.cpU, false);
   S.mode = 'play'; hideOverlay();
-  toast(S.cpU > 0 ? 'チェックポイントからやりなおし' : 'もういちど!', 1800);
+  toast(T(S.cpU > 0 ? 'チェックポイントからやりなおし' : 'もういちど!'), 1800);
 }
 function lockPointer() {
   if (IS.touch) return;
@@ -4068,6 +4308,7 @@ function openSettings() { if (S.mode !== 'title' && S.mode !== 'pause') return; 
 function closeSettings() { if (!inSet) return; inSet = false; saveCfg(); showOverlay(S.mode === 'pause' ? 'pause' : 'title'); }
 function act(a, el) {
   initAudio();
+  if (a === 'lang' && el) { const prev = LANG; setLang(el.dataset.l); if (LANG !== prev) track('lang_change', { lang: LANG }); showOverlay(inSet ? 'settings' : S.mode === 'pause' ? 'pause' : 'title'); return; }
   if (a === 'settings') { openSettings(); return; }
   if (a === 'back') { closeSettings(); return; }
   if (inSet) return;
@@ -4084,7 +4325,7 @@ function act(a, el) {
     const out = $('cardOut'); if (!out) return;
     track('share', { method: 'story_card', stage: S.stage });
     const url = cardImage('story');
-    out.innerHTML = url ? '<img class="cardimg" alt="クリア記念の画像" src="' + url + '"><div class="btns"><button class="btn sns" data-act="savecard">画像を保存</button></div><p class="small" id="cardMsg">インスタグラムのストーリーズなどに使えます。</p>' : '<p class="small">画像を作れませんでした。</p>';
+    out.innerHTML = url ? '<img class="cardimg" alt="' + esc(T('クリア記念の画像')) + '" src="' + url + '"><div class="btns"><button class="btn sns" data-act="savecard">' + T('画像を保存') + '</button></div><p class="small" id="cardMsg">' + T('インスタグラムのストーリーズなどに使えます。') + '</p>' : '<p class="small">' + T('画像を作れませんでした。') + '</p>';
     LAST_CARD = url;
   } else if (a === 'savecard' && LAST_CARD) saveCard(el);
   else if (a === 'xshare') { track('share', { method: 'x', stage: S.stage }); xShare(); }
@@ -4099,14 +4340,14 @@ function saveCard(btn, msgId) {
   if (DL) {
     const bin = atob(LAST_CARD.split(',')[1]), u8 = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-    DL.save({ filename: name, data: u8 }).then(function () { say('保存しました。'); }, function (e) {
+    DL.save({ filename: name, data: u8 }).then(function () { say(T('保存しました。')); }, function (e) {
       const c = e && e.code;
-      say(c === 'declined' ? '保存をやめました。' : c === 'rate_limited' ? '少し待ってから、もう一度押してください。' : c === 'host_unavailable' ? 'このアプリでは保存できません。ブラウザかパソコンで開いてください。' : '画像を長押し（パソコンは右クリック）で保存してください。');
+      say(T(c === 'declined' ? '保存をやめました。' : c === 'rate_limited' ? '少し待ってから、もう一度押してください。' : c === 'host_unavailable' ? 'このアプリでは保存できません。ブラウザかパソコンで開いてください。' : '画像を長押し（パソコンは右クリック）で保存してください。'));
     });
     return;
   }
-  try { const a = document.createElement('a'); a.href = LAST_CARD; a.download = name; document.body.appendChild(a); a.click(); a.remove(); say('保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。'); }
-  catch (e) { say('画像を長押し（パソコンは右クリック）で保存してください。'); }
+  try { const a = document.createElement('a'); a.href = LAST_CARD; a.download = name; document.body.appendChild(a); a.click(); a.remove(); say(T('保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。')); }
+  catch (e) { say(T('画像を長押し（パソコンは右クリック）で保存してください。')); }
   void btn;
 }
 ov.addEventListener('click', function (e) { const b = e.target.closest ? e.target.closest('[data-act]') : null; if (b) act(b.dataset.act, b); });
@@ -4123,7 +4364,10 @@ ov.addEventListener('input', function (e) {
     CFG.sens = +e.target.value; $('sSensV').textContent = CFG.sens.toFixed(2);
   }
 });
-ov.addEventListener('change', function (e) { if (e.target && (e.target.id === 'sVol' || e.target.id === 'sSens')) saveCfg(); });
+ov.addEventListener('change', function (e) {
+  if (e.target && (e.target.id === 'sVol' || e.target.id === 'sSens')) saveCfg();
+  if (e.target && e.target.id === 'sLang') { const prev = LANG; setLang(e.target.value); if (LANG !== prev) track('lang_change', { lang: LANG }); showOverlay('title'); try { const s = $('sLang'); if (s) s.focus({ preventScroll: true }); } catch (er) {} }
+});
 window.addEventListener('hashchange', function () { INVITE = readHash(); if (S.mode === 'title') showOverlay('title'); });
 
 /* ================= input ================= */
@@ -4138,7 +4382,7 @@ window.addEventListener('keydown', function (e) {
     if (c === 'Escape' || c === 'KeyP') { if (S.mode === 'play') pauseGame(); else if (S.mode === 'pause') act('resume'); }
     if (c === 'Enter') { e.preventDefault(); if (S.mode === 'title') act(INVITE && INVITE.kind === 'challenge' ? 'challenge' : 'start'); else if (S.mode === 'pause') act('resume'); else if (S.mode === 'clear' && HC.clearShown) act(S.play === 'normal' ? 'next' : 'title'); }
     if (c === 'KeyR' && (S.mode === 'over' || S.mode === 'clear' || S.mode === 'pause')) act('restart');
-    if (c === 'KeyM') { S.muted = !S.muted; applyVolume(); saveCfg(); if (S.mode === 'play') toast(S.muted ? 'おと: オフ' : 'おと: オン', 900); }
+    if (c === 'KeyM') { S.muted = !S.muted; applyVolume(); saveCfg(); if (S.mode === 'play') toast(T(S.muted ? 'おと: オフ' : 'おと: オン'), 900); }
   }
   keys[c] = true;
   if (c === 'Space') keys.KeyD = true;
@@ -4260,6 +4504,7 @@ function boot() {
   showOverlay('title');
 }
 try { setTouch(!!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)); } catch (e) {}
+applyStatic();
 boot();
 loadModels().then(function () { if (S.mode === 'title') boot(); });
 
