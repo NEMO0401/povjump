@@ -21,6 +21,8 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="POV Jump のタイトルと、草原を走るゲーム画面">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-D1LEMCK510"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-D1LEMCK510");</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3796,6 +3798,8 @@ function updateHud() {
   if (HC.bh !== wv) { HC.bh = wv; E.behind.classList.toggle('on', wv); }
 }
 
+/* ================= 計測(公開サイトでだけ働く。gtag が無ければ何もしない) ================= */
+function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
 const GAME_VER = '4.2', GAME_DATE = '2026年11月25日', GEN_VER = 4;
@@ -4015,7 +4019,8 @@ function showOverlay(kind) {
   hud.hidden = kind === 'title' || (kind === 'settings' && S.mode === 'title');
   cross.classList.remove('on');
   const b = ov.querySelector('.btn'); if (b) { try { b.focus({ preventScroll: true }); } catch (e) {} }
-  if (kind === 'clear') prepareShareImage();
+  if (kind === 'clear') { prepareShareImage(); track('stage_clear', { mode: S.play, stage: S.stage, score: S.score, reds: S.reds, ver: GAME_VER }); }
+  if (kind === 'over') track('game_over', { mode: S.play, stage: S.stage, score: S.score, ver: GAME_VER });
 }
 function hideOverlay() { ov.hidden = true; ov.innerHTML = ''; hud.hidden = false; cross.classList.add('on'); try { canvas.focus({ preventScroll: true }); } catch (e) {} }
 function resetPlayer(u, keep) {
@@ -4041,6 +4046,7 @@ function startStage(keep) {
 function newGame(play, stage, seed) {
   S.play = play || 'normal';
   S.lives = 3; S.score = 0; S.coins = 0; S.stage = stage || 1; S.seed = seed === undefined ? (Math.random() * 1e9) >>> 0 : seed;
+  track('game_start', { mode: S.play, stage: S.stage, ver: GAME_VER });
   startStage(false);
 }
 function nextStage() { S.stage++; startStage(true); }
@@ -4072,16 +4078,17 @@ function act(a, el) {
   else if (a === 'next' && S.mode === 'clear') { lockPointer(); nextStage(); }
   else if (a === 'title') toTitle();
   else if (a === 'restart' && (S.mode === 'pause' || S.mode === 'over' || S.mode === 'clear')) { if (S.play === 'normal') { lockPointer(); newGame('normal'); } else toTitle(); }
-  else if (a === 'copy' && el) copyShare(el);
-  else if (a === 'share') imageShare();
+  else if (a === 'copy' && el) { track('share', { method: 'copy_link', stage: S.stage }); copyShare(el); }
+  else if (a === 'share') { track('share', { method: 'native', stage: S.stage }); imageShare(); }
   else if (a === 'card') {
     const out = $('cardOut'); if (!out) return;
+    track('share', { method: 'story_card', stage: S.stage });
     const url = cardImage('story');
     out.innerHTML = url ? '<img class="cardimg" alt="クリア記念の画像" src="' + url + '"><div class="btns"><button class="btn sns" data-act="savecard">画像を保存</button></div><p class="small" id="cardMsg">インスタグラムのストーリーズなどに使えます。</p>' : '<p class="small">画像を作れませんでした。</p>';
     LAST_CARD = url;
   } else if (a === 'savecard' && LAST_CARD) saveCard(el);
-  else if (a === 'xshare') xShare();
-  else if (a === 'savex' && SHARE_IMG) { LAST_CARD = SHARE_IMG.url; saveCard(el, 'shareMsg'); }
+  else if (a === 'xshare') { track('share', { method: 'x', stage: S.stage }); xShare(); }
+  else if (a === 'savex' && SHARE_IMG) { track('share', { method: 'save_image', stage: S.stage }); LAST_CARD = SHARE_IMG.url; saveCard(el, 'shareMsg'); }
 }
 /* 画像の保存: Claude の画面では downloads 機能、ふつうのサイトではダウンロードリンク */
 let LAST_CARD = '', DL = null;
