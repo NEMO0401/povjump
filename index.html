@@ -181,6 +181,11 @@ h2 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size
 .xprev img { width: 168px; aspect-ratio: 16 / 9; border-radius: 8px; background: rgba(255,247,227,.08); box-shadow: 0 6px 18px rgba(0,0,0,.35); object-fit: cover; -webkit-touch-callout: default; pointer-events: auto; user-select: auto; }
 .xprev .small { margin: 0 0 8px; }
 @media (max-width: 460px) { .xprev { grid-template-columns: 1fr; } .xprev img { width: 100%; } }
+.vidbox { margin-top: 14px; }
+.vidbox .small { margin: 0 0 8px; }
+.xprev video { width: 168px; aspect-ratio: 16 / 9; border-radius: 8px; background: #000; box-shadow: 0 6px 18px rgba(0,0,0,.35); object-fit: cover; pointer-events: auto; }
+@media (max-width: 460px) { .xprev video { width: 100%; } }
+.btn .bsub { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; opacity: .85; }
 .cardimg { display: block; width: 120px; margin: 12px 0 0; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.35); -webkit-touch-callout: default; pointer-events: auto; user-select: auto; }
 #cardOut a { color: var(--sun); }
 .updnote { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: rgba(92,214,140,.14); box-shadow: inset 0 0 0 2px rgba(92,214,140,.5); font-size: 14px; }
@@ -562,14 +567,15 @@ try {
   S.bestStage = parseInt(localStorage.getItem('pyonran-beststage') || '1', 10) || 1;
 } catch (e) {}
 /* せってい: おんりょう(0〜100) / ミュート / 視点のかんど(倍率) */
-const CFG = { vol: 100, sens: 1 };
+const CFG = { vol: 100, sens: 1, rec: true };
 try {
   const c = JSON.parse(localStorage.getItem('pyonran-cfg') || '{}');
   if (typeof c.vol === 'number') CFG.vol = Math.min(100, Math.max(0, c.vol));
   if (typeof c.sens === 'number') CFG.sens = Math.min(3, Math.max(0.3, c.sens));
   if (c.muted === true) S.muted = true;
+  if (c.rec === false) CFG.rec = false;
 } catch (e) {}
-function saveCfg() { try { localStorage.setItem('pyonran-cfg', JSON.stringify({ vol: CFG.vol, sens: CFG.sens, muted: S.muted })); } catch (e) {} }
+function saveCfg() { try { localStorage.setItem('pyonran-cfg', JSON.stringify({ vol: CFG.vol, sens: CFG.sens, muted: S.muted, rec: CFG.rec })); } catch (e) {} }
 
 const keys = {};
 const joy = { x: 0, y: 0, dash: false }; /* スマホのスティック: x=右が+, y=前が+, 長さ0〜1 */
@@ -659,6 +665,52 @@ const DICT = {
   es: {"もり":"Bosque","うみ":"Mar","どくのぬま":"Pantano tóxico","マグマ":"Magma","やしき":"Mansión","そら":"Cielo","こおり":"Hielo","うちゅう":"Espacio","1UP! ライフが増えた":"¡1UP! Vida extra","ファイア":"Fuego","アイス":"Hielo","ムチ":"Látigo","バリアがまもってくれた!":"¡El escudo te protegió!","ダメージ! ちいさくなった":"¡Auch! Te encogiste","しびれた! 2びょう うごけない":"¡Electrocutado! No puedes moverte 2 s","じかんぎれ!":"¡Se acabó el tiempo!","やられた!":"¡Te derrotaron!","れんぞくふみつけ 1UP!":"¡Combo de pisotones 1UP!","れんぞく {n}!":"¡Combo {n}!","パワーベリー! おおきくなった":"¡Baya de poder! Ahora eres grande","ムチボタンで攻撃":"Toca el botón de látigo para atacar","ボタンで発射":"Toca el botón para disparar","Zキーで攻撃":"Pulsa Z para atacar","Zキーで発射":"Pulsa Z para disparar","ファイアシード!":"¡Semilla de fuego!","アイスシード! 敵をこおらせる":"¡Semilla de hielo! Congela a los enemigos","つるのムチ! 少し先までとどく":"¡Látigo de enredadera! Llega un poco más lejos","にじベリー! 10びょう むてき":"¡Baya arcoíris! Invencible 10 s","ダブルブーツ! 空中でもう1回ジャンプ":"¡Botas dobles! Salta otra vez en el aire","マント! ジャンプ長押しで ゆっくり落ちる":"¡Capa! Mantén el salto para caer despacio","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"¡Mini champiñón! Pasas por huecos pequeños. Un golpe y pierdes","じしゃく! コインをすいよせる":"¡Imán! Atrae las monedas","バリア! 1回だけ攻撃をふせぐ":"¡Escudo! Bloquea un golpe","スロー時計! 敵がゆっくりになる":"¡Reloj lento! Los enemigos van más despacio","むてきがきれた":"Se acabó la invencibilidad","ダブルブーツがきれた":"Se acabaron las botas dobles","マントがきれた":"Se acabó la capa","じしゃくがきれた":"Se acabó el imán","もとの大きさにもどった":"Volviste a tu tamaño normal","どくでダメージ!":"¡Daño por veneno!","赤コイン5まい コンプリート! 1UP":"¡Las 5 monedas rojas! 1UP","赤コイン {n} / 5":"Monedas rojas {n} / 5","チェックポイント!":"¡Punto de control!","ステージクリア!":"¡Nivel superado!","コドラ":"Kodora","ドラゴ大王":"Rey Drago","ボスをたおした! ゴールへ!":"¡Jefe derrotado! ¡A la meta!","ちゅうボスをたおした! ゴールへ!":"¡Minijefe derrotado! ¡A la meta!","ボス ドラゴ大王! {how}でたおせ!":"¡Jefe: Rey Drago! ¡Derrótalo con {how}!","ちゅうボス コドラ! ふんづけてたおせ!":"¡Minijefe Kodora! ¡Písalo!","ねばねば! しばらくジャンプが低くなる":"¡Pegajoso! Saltarás menos por un rato","すみをかけられた!":"¡Te echaron tinta!","かくし部屋! コインを集めて、おくの土管から出よう":"¡Sala secreta! Recoge las monedas y sal por la tubería del fondo","もとの道にもどった!":"¡De vuelta al camino!","ミニ":"Mini","おおきい":"Grande","ちいさい":"Pequeño"," ・":" · ","きょうのステージ":"Nivel del día","ちょうせん":"Desafío","こうげき":"Atacar","むてき":"Invencible","ブーツ":"Botas","マント":"Capa","じしゃく":"Imán","スロー":"Lento","ねばねば":"Pegajoso","バリア":"Escudo","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"Ahora puedes elegir el idioma (日本語, English, 中文, Español, हिन्दी)","敵・アイテム・しかけの3Dモデルを新しくしました":"Nuevos modelos 3D para enemigos, objetos y trampas","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"El juego cambió de nombre: de \"Pyon Run\" a \"POV Jump\"","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"Al compartir en X se añade una imagen con tu puntuación y #gamedev","ちょうせんリンクがバージョンに対応しました":"Los enlaces de desafío ahora indican la versión","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"Se añadieron 8 mundos, curvas y bifurcaciones, y nuevos enemigos, objetos y trampas","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"Se añadieron el nivel del día, los enlaces de desafío y los fantasmas","アップデートしました（バージョン {v}）":"Actualizado (versión {v})","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #videojuegos","きょうのステージ（{t}）":"el nivel del día ({t})","ステージ{n}（{t}）":"el nivel {n} ({t})","POV Jumpで{h}をクリア！":"¡Superé {h} en POV Jump!","スコア {s}":"Puntos: {s}","（赤コイン5まい！）":" (¡las 5 monedas rojas!)","このステージに挑戦してね":"¿Puedes superar este nivel?","コピーしました":"Copiado","コピーできませんでした":"No se pudo copiar","きょうのステージ クリア!":"¡Nivel del día superado!","ステージ {n} クリア!":"¡Nivel {n} superado!","{t} のステージ":"Mundo: {t}","スコア":"Puntos","コイン {c}   赤コイン {r}/5":"Monedas {c}   Rojas {r}/5","タイム {t}びょう":"Tiempo {t} s","コイン {c}  ・  赤コイン {r}/5":"Monedas {c}  ·  Rojas {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"Se abrió la ventana de X. Guarda la imagen con «Guardar imagen» y adjúntala.","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"Imagen copiada. Pégala en la ventana de X (⌘V / Ctrl+V) para adjuntarla.","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"Se abrió la ventana de X. Guarda la imagen con «Guardar imagen» (abajo) y adjúntala.","シェアしました。":"Compartido.","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"Aquí no se puede usar el menú de compartir. Usa «Compartir en X» o «Guardar imagen».","前へ / 後ろへ":"Adelante / Atrás","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"Saltar (mantén para subir más; púlsalo justo antes de pisar a un enemigo para un gran salto)","ダッシュ（Sでも走れます）":"Correr (también con S)","こうげき（ファイア・アイス・ムチを取ると使えます）":"Atacar (cuando tengas Fuego, Hielo o Látigo)","マウス":"Ratón","見まわす（矢印キーでも見まわせます）":"Mirar alrededor (también con las flechas)","左スティック":"Palanca izq.","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"Pon el dedo en el círculo y deslízalo para moverte. Llévalo hasta el borde para correr","ジャンプ":"Saltar","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"Mantén para saltar más alto. Púlsalo justo antes de pisar a un enemigo para un gran salto","ファイア・アイス・ムチを取ると使えます":"Disponible cuando tengas Fuego, Hielo o Látigo","なぞる":"Deslizar","画面をなぞって見まわします":"Desliza la pantalla para mirar alrededor","水に入ると、動きがおそくなります。":"El agua te hace ir más lento.","毒の水たまりに長くいると、ダメージを受けます。":"Si te quedas mucho en el veneno, recibirás daño.","マグマに落ちるとミス。ほのおの噴き出しに注意。":"Caer en el magma te cuesta una vida. Cuidado con los chorros de fuego.","暗い屋敷。ライトで照らして進みます。":"Una mansión oscura. Ilumina el camino para avanzar.","トランポリンで、空の高い足場へ行けます。":"Los trampolines te llevan a plataformas altas en el cielo.","氷の床はすべります。":"El suelo helado resbala.","重力が弱く、高く跳べます。":"Con poca gravedad saltas muy alto.","ここから「{t}」のステージ。":"Aquí empieza el mundo «{t}».","ゴール前に、ちゅうボスがまっています。":"Un minijefe te espera antes de la meta.","ゴール前に、ボスがまっています。":"El jefe te espera antes de la meta.","ちょうせんが とどいています":"¡Te han desafiado!","ステージ {n}（{t}）":"Nivel {n} ({t})","ステージのテーマの順番が、遊ぶたびにランダムになりました（最初の5ステージは森）":"El orden de los temas ahora es aleatorio en cada partida (los primeros 5 niveles siempre son Bosque)","ドラゴ大王のジャンプ着地の範囲が、10ステージごとに広がります":"La onda de aterrizaje del Rey Dragón se ensancha cada 10 niveles","ボス ドラゴ大王! ふらふらのときに 頭をふんでダメージ!":"¡Jefe Rey Dragón! ¡Pisa su cabeza cuando esté mareado para hacerle daño!","ファイアがなくても、ドラゴ大王は着地やブレスのあとに頭をふめばダメージを与えられます":"Incluso sin Fuego, puedes dañar al Rey Dragón pisándole la cabeza después de que aterrice o sople","ファイアボールが、くるくる回る火の玉になり、マグマの炎や毒ガスも、ほんものらしくなりました":"Las bolas de fuego ahora giran, y las llamas de lava y el gas venenoso se ven mucho más reales","ムチがしなり、雷・ブレス・毒の泡・アイスのエフェクトも、迫力アップしました":"El látigo ahora se curva y chasquea como uno de verdad, y los efectos de rayos, aliento, burbujas venenosas y hielo son más potentes","ゲームオーバー画面からも、到達したステージとスコアをXでシェアできるようになりました":"Ahora también puedes compartir en X la etapa a la que llegaste y tu puntuación desde la pantalla de Game Over","どうくつ":"Cueva","まち":"Ciudad","さばく":"Desierto","天井から石が落ちてきます。ゆれたら、すぐはなれて。":"Caen rocas del techo. Si una empieza a temblar, aléjate rápido.","動く歩道に乗ると、流されます。":"Las cintas transportadoras te arrastran.","流砂に入ると、足が遅くなり、ジャンプが低くなります。":"Las arenas movedizas te frenan y hacen que saltes menos.","新しいステージ「どうくつ」「まち」「さばく」を追加しました（テーマは全部で11種類）":"Nuevos mundos: Cueva, Ciudad y Desierto (11 temas en total)","モリノヌシ":"Guardián del Bosque","ユキダルマン":"Rey Muñeco","ゼリーキング":"Rey Gelatina","ちゅうボス モリノヌシ! 突進を大木にぶつけて、目を回したら頭をふめ!":"¡Minijefe Guardián del Bosque! Haz que embista un árbol grande y písale la cabeza mientras está mareado.","ちゅうボス ユキダルマン! ファイアかムチでとかして、さいごに頭をふめ!":"¡Minijefe Rey Muñeco! Derrítelo con Fuego o el Látigo y al final písale la cabeza.","ボス ゼリーキング! あてるたびに分裂する。ぜんぶたおせ!":"¡Jefe Rey Gelatina! Se divide cada vez que lo golpeas. ¡Acaba con todos los trozos!","いまだ! 頭をふめ!":"¡Ahora! ¡Písale la cabeza!","アイスは ユキダルマンを回復させてしまう!":"¡El hielo cura al Rey Muñeco!","新しいボス「モリノヌシ」「ユキダルマン」「ゼリーキング」が登場します（15ステージから）":"Nuevos jefes desde el nivel 15: Guardián del Bosque, Rey Muñeco y Rey Gelatina","よろいナイト":"Caballero Armadura","ばくだんキング":"Rey Bomba","ドクガエルおう":"Rey Rana Tóxica","ダイオウダコ":"Pulpo Gigante","マグマゴーレム":"Gólem de Magma","サンダーバード":"Pájaro Trueno","コスモアイ":"Ojo Cósmico","ドラゴ大魔王":"Señor Demonio Drago","ちゅうボス よろいナイト! シャンデリアを落として、鎧をくずせ!":"¡Minijefe Caballero Armadura! Tírale una lámpara de araña encima para romper su armadura.","ちゅうボス ばくだんキング! ボムをけり返して、ころばせろ!":"¡Minijefe Rey Bomba! Devuélvele las bombas de una patada para tumbarlo.","ちゅうボス ドクガエルおう! 毒の泡をふんで高くはね、王冠をふめ!":"¡Minijefe Rey Rana Tóxica! Rebota en sus burbujas venenosas y písale la corona.","ボス ダイオウダコ! 触手を全部落として、頭をふめ!":"¡Jefe Pulpo Gigante! Arráncale todos los tentáculos y luego písale la cabeza.","ボス マグマゴーレム! 柱の上にさそって、スイッチをふめ!":"¡Jefe Gólem de Magma! Atráelo sobre un pilar y pisa un interruptor.","ボス サンダーバード! 避雷針のそばで雷をさそえ。落ちてきたらふめ!":"¡Jefe Pájaro Trueno! Atrae el rayo junto a un pararrayos y písalo cuando caiga.","ボス コスモアイ! スーパーファイアフラワーを取って、瞳をうて!":"¡Jefe Ojo Cósmico! Coge una Superflor de Fuego y dispárale a la pupila.","ドラゴ大魔王があらわれた! 柱の上にさそって、スイッチをふめ!":"¡Aparece el Señor Demonio Drago! Atráelo sobre un pilar y pisa un interruptor.","スーパーファイア! こうげきボタンで ボスをうて!":"¡Superfuego! Pulsa Atacar para disparar al jefe.","鎧がくずれた! 兜をふめ!":"¡Se rompió la armadura! ¡Pisa el yelmo!","ころんだ! いまだ!":"¡Se cayó! ¡Ahora!","王冠にとどいた!":"¡Alcanzaste la corona!","とどかない… 毒の泡をふんで高くはねよう!":"Demasiado alto… ¡Rebota en una burbuja venenosa!","頭が落ちた! ふめ!":"¡Se le cayó la cabeza! ¡Písala!","打ち上げた!":"¡Lanzado!","感電して落ちてきた! ふめ!":"¡Se electrocutó y cayó! ¡Písalo!","ふつうの攻撃は少ししか効かない! スーパーファイアフラワーをさがせ":"¡Los ataques normales casi no le hacen nada! Busca una Superflor de Fuego","大魔王が空へ! 青い炎がくる。遮蔽物のかげにかくれろ!":"¡El Señor Demonio alza el vuelo! Vienen llamas azules. ¡Escóndete tras un refugio!","核がむき出しになった! スーパーファイアで核をうて!":"¡Su núcleo está al descubierto! ¡Dispárale con Superfuego!","青い炎がくる! かくれろ!":"¡Llamas azules! ¡Escóndete!","青い炎がくる! 遮蔽物のかげにかくれろ!":"¡Llamas azules! ¡Escóndete tras un refugio!","大魔王がつかれている! いまだ!":"¡El Señor Demonio está agotado! ¡Ahora!","いまだ!":"¡Ahora!","ドラゴ大魔王をたおした!! ライフ+3":"¡Derrotaste al Señor Demonio Drago! +3 vidas","100面ボス撃破!":"¡Jefe del nivel 100 derrotado!","さらに「よろいナイト」「ばくだんキング」「ドクガエルおう」「ダイオウダコ」「マグマゴーレム」「サンダーバード」「コスモアイ」も登場します":"También llegan: Caballero Armadura, Rey Bomba, Rey Rana Tóxica, Pulpo Gigante, Gólem de Magma, Pájaro Trueno y Ojo Cósmico","100ステージごとに、超強敵「ドラゴ大魔王」があらわれます":"Cada 100 niveles aparece el temible Señor Demonio Drago","POV Jumpで{h}まで行きました！":"¡Llegué hasta {h} en POV Jump!","POV Jumpで{h}にちょうせんしました！":"¡Intenté {h} en POV Jump!","ここまで来られるかな？":"¿Podrás llegar hasta aquí?","ステージ {n} まで到達!":"¡Llegué a la etapa {n}!","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"El juego se actualizó, así que el nivel puede ser algo distinto al que te enviaron.","このステージに ちょうせん":"Aceptar el desafío","・":", ","FPS ジャンプアクション":"Plataformas 3D en primera persona","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"Corre y salta en primera persona hasta la meta. Cada nivel se genera de nuevo y el mundo cambia cada 5 niveles: {w}.","はじめる":"Empezar","せってい":"Ajustes","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"No se pudieron cargar los modelos; se mostrarán formas simples.","キャラクターを読みこみ中…":"Cargando personajes…","横向きにすると遊びやすくなります。":"Gira el móvil en horizontal para jugar mejor.","Enter キーでも始められます。":"También puedes empezar con Enter.","バージョン {v}（{d} 更新）":"Versión {v} (actualizada el {d})","ハイスコア {s}":"Récord {s}","とうたつステージ {n}":"Nivel máximo {n}","きょうのステージは {n}（{t}）":"Nivel del día: {n} ({t})","ポーズ":"Pausa","つづける":"Continuar","ステージ1から":"Desde el nivel 1","タイトルへ":"Ir al título","ことば":"Idioma","おんりょう":"Volumen","ミュート":"Silencio","視点のかんど":"Sensibilidad de cámara","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"La sensibilidad afecta al ratón, al deslizar y a las flechas. Cuanto más alto, más rápido giras.","もどる":"Volver","ゲームオーバー":"Fin del juego","とうたつステージ":"Nivel alcanzado","コイン":"Monedas","R キーでも再挑戦できます。":"Pulsa R para reintentar.","タイム":"Tiempo","{t}びょう":"{t} s","じこベスト":"Mejor marca","きょうのステージ {n}（{t}）":"Nivel del día {n} ({t})","クリア!":"¡Superado!","自己ベスト!":"¡Nueva mejor marca!","タイムボーナス":"Bonus de tiempo","赤コイン":"Monedas rojas","ハイスコア":"Récord","ステージ {n} へ":"Al nivel {n}","このゲームを広める":"Comparte el juego","Xでシェア（画像つき）":"Compartir en X (con imagen)","スマホで画像つきシェア":"Compartir con imagen (móvil)","リンクをコピー":"Copiar enlace","シェアする画像":"Imagen para compartir","スコアの入った画像と、{tags} のハッシュタグが付きます。":"Se añade una imagen con tu puntuación y los hashtags {tags}.","画像を保存":"Guardar imagen","ストーリーズ用（縦長）":"Para historias (vertical)","Enter キーでも進めます。R キーでステージ1から。":"Pulsa Enter para seguir o R para volver al nivel 1.","きょうのステージ {n}「{t}」スタート!":"¡Nivel del día {n}: {t}! ¡Adelante!","ステージ {n}「{t}」スタート!":"¡Nivel {n}: {t}! ¡Adelante!","ボスせん":"Combate contra el jefe","ちゅうボスせん":"Combate contra el minijefe","画面をなぞって見まわせます":"Desliza la pantalla para mirar alrededor","矢印キーかドラッグで見まわせます":"Usa las flechas o arrastra para mirar","チェックポイントからやりなおし":"Reiniciando desde el punto de control","もういちど!":"¡Otra vez!","クリア記念の画像":"Imagen de recuerdo","インスタグラムのストーリーズなどに使えます。":"Ideal para historias de Instagram y más.","画像を作れませんでした。":"No se pudo crear la imagen.","保存しました。":"Guardado.","保存をやめました。":"Guardado cancelado.","少し待ってから、もう一度押してください。":"Espera un momento y vuelve a intentarlo.","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"No se puede guardar en esta app. Ábrelo en un navegador o en un ordenador.","画像を長押し（パソコンは右クリック）で保存してください。":"Mantén pulsada la imagen (clic derecho en el ordenador) para guardarla.","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"Guardado. Si no funcionó, mantén pulsada la imagen (o clic derecho) para guardarla.","おと: オフ":"Sonido: no","おと: オン":"Sonido: sí","ステージ":"Nivel","のこり":"Tiempo","ライフ":"Vidas","うしろ!":"¡Detrás!","いどう":"Mover","ダッシュ":"Correr","おと":"Sonido","しびれて うごけない!":"¡Electrocutado! ¡No puedes moverte!","たおしかた":"Cómo vencer","触手をたたきつけたあとに頭をふむと、触手が切れる!":"¡Pisa su cabeza justo después de que un tentáculo golpee el suelo para cortarlo!","ふんづけてたおす。ファイアなどでもOK":"Písalo para vencer. El fuego y otros poderes también sirven","ふらふらのとき(着地・ブレスのあと)に頭をふむ。ファイアなどでも少しダメージ":"Písale la cabeza cuando esté mareado (tras aterrizar o soplar). El fuego etc. también hace un poco de daño","とっしんを大木にぶつけさせる。目を回したら頭をふむ(3回)":"Haz que embista un árbol grande. Cuando se maree, písale la cabeza (3 veces)","ブレスで息切れしたら頭をふむと雪が1段へる。さいごは頭をふむ。ファイア・ムチでもとける(アイスは回復)":"Písale la cabeza cuando esté sin aliento para quitarle una capa de nieve. Remata con un pisotón. El fuego y el látigo también la derriten (el hielo lo cura)","ふむと分裂する。小さくなるまで ぜんぶふむ(合計7回)":"Se divide al golpearlo. Pisa todos los trozos hasta que desaparezcan (7 golpes en total)","剣をふりおろすと、天井のシャンデリアが落ちる。ナイトの上に落として鎧をくずし、兜をふむ(3回)":"Al clavar la espada cae una lámpara del techo. Hazla caer sobre el caballero para romper la armadura y pisa el casco (3 veces)","とんでくるボムをけり返す。ころんだら頭をふむ":"Devuelve las bombas de una patada. Cuando caiga, písale la cabeza","毒の泡をふんで高くはね、頭の王冠をふむ":"Rebota alto en una burbuja venenosa y pisa la corona de su cabeza","触手のたたきつけのあとに頭をふむと、触手が切れる。6本切ったら、落ちてきた頭をふむ":"Písale la cabeza tras un golpe de tentáculo para cortarlo. Con los 6 cortados, pisa la cabeza que cae","柱の上にさそい出し、スイッチをふんで打ち上げる":"Atráelo sobre los pilares y pisa los interruptores para lanzarlo","避雷針のそばで雷をさそう。落ちてきたらふむ":"Atrae el rayo junto a un pararrayos. Písalo cuando caiga","出てくるスーパーファイアフラワーを取って、瞳をうつ":"Toma la Superflor de Fuego que aparece y dispara a su ojo","1:柱の上にさそってスイッチをふむ 2:青い炎は物かげでふせぎ、へたりこんだらふむ 3:スーパーファイアで核をうつ":"1: Atráelo a los pilares y pisa los interruptores 2: Protégete de las llamas azules tras un refugio; písalo cuando se desplome 3: Dispara al núcleo con Superfuego","ボス戦中に、画面の左上に「たおしかた」(パワーなしでの倒しかた)が出るようになりました":"Durante los combates contra jefes, arriba a la izquierda aparece «Cómo vencer» (cómo ganar sin poderes)","ファイア・アイス・ムチなどでも、どのボスにも少しダメージが入ります(ユキダルマンにアイスは回復のまま)":"El fuego, el hielo, el látigo y otros poderes ahora hacen un poco de daño a todos los jefes (el hielo sigue curando al Rey Muñeco)","ダイオウダコは、触手のたたきつけのあとに頭をふむと、パワーなしでも触手を切れます":"Ahora puedes cortar los tentáculos del Pulpo Gigante sin poderes pisándole la cabeza justo tras un golpe de tentáculo","ボスの出る確率が、ドラゴ大魔王(100面)をのぞいて、ぜんぶ同じになりました":"Todos los jefes aparecen ahora con la misma probabilidad, excepto el Señor Demonio Drago, que siempre sale en el nivel 100","サンダー":"Trueno","ダメージ! パワーがなくなった":"¡Auch! Perdiste tu poder","サンダーシード! 電気が となりの敵へ つたわる":"¡Semilla de trueno! La descarga salta a los enemigos cercanos","スーパーアタック OK! ボタンで発動":"¡Superataque listo! Toca el botón","スーパーアタック OK! Cキーで発動":"¡Superataque listo! Pulsa C","パワーベリー":"Baya de poder","ファイアシード":"Semilla de fuego","アイスシード":"Semilla de hielo","つるのたね":"Semilla de enredadera","サンダーシード":"Semilla de trueno","にじベリー":"Baya arcoíris","ダブルブーツ":"Botas dobles","スロー時計":"Reloj lento","ミニきのこ":"Minichampiñón","{item} をストックした":"Guardado: {item}","タップで使う":"toca para usar","Xキーで使う":"pulsa X para usar","もう おおきい!":"¡Ya eres grande!","もう そのパワーをもっている":"Ya tienes ese poder","ふむと分裂する。小さくなるまで ぜんぶふむ(合計5回)":"Se divide al pisarlo. Pisa todos los pedazos hasta que desaparezcan (5 pisotones en total)","かくし部屋! パワーを1つだけえらべる。おくの土管から出よう":"¡Sala secreta! Elige un solo poder y sal por la tubería del fondo","なし":"Vacío","新しいパワー「サンダー」: 電気の玉が、だんだん速くなって飛びます。当たった敵のとなりへ、感電が次々に広がります":"Nuevo poder \"Trueno\": una bola eléctrica que acelera al volar. La descarga salta del enemigo alcanzado a los de al lado","スーパーアタック: 90秒でゲージがたまり(敵を1体倒すごとに1秒短く)、自分の状態に合わせた大技が出せます":"Superataque: la barra se llena en 90 s (1 s menos por cada enemigo derrotado) y lanza un gran golpe según tu forma","アイテムを1個だけストックできます(Xキー / 右上をタップで使う)":"Puedes guardar un objeto (pulsa X o toca arriba a la derecha para usarlo)","パワーがあるときにダメージを受けても、まず大きい状態にもどるだけになりました":"Si te golpean con un poder, ahora primero solo vuelves a ser grande","ムチでコインが取れます。正体をあらわす前のにせコインも、ムチやパワーで倒せます":"El látigo ahora atrapa monedas. Las monedas falsas se pueden derrotar con el látigo o poderes antes de revelarse","かくし部屋に、パワーを1つえらべる部屋がふえました":"Algunas salas secretas ahora te dejan elegir un poder","ボス(中ボス以外)の体力を、およそ4分の3にしました。どの敵・どの状態にも、パワーが効くようになりました":"Los jefes (no los subjefes) ahora tienen unas tres cuartas partes de su vida. Los poderes ahora funcionan contra todos los enemigos en cualquier estado","空・地面・水・毒・マグマの絵や、木や岩などの飾りを、たくさん新しくしました":"Mucho arte nuevo para el cielo, el suelo, el agua, el veneno y el magma, y muchos árboles, rocas y adornos nuevos","こうげき（ファイア・アイス・ムチ・サンダーを取ると使えます）":"Atacar (al conseguir Fuego, Hielo, Látigo o Trueno)","ストックしたアイテムを使う（1個までストックできます）":"Usar el objeto guardado (puedes guardar uno)","スーパーアタック（ゲージがたまると使えます）":"Superataque (cuando la barra está llena)","ファイア・アイス・ムチ・サンダーを取ると使えます":"Disponible al conseguir Fuego, Hielo, Látigo o Trueno","ストック":"Reserva","右上の「ストック」をタップすると、とっておいたアイテムを使います":"Toca \"Reserva\" arriba a la derecha para usar el objeto guardado","スーパー":"Súper","右下の丸いボタン。ゲージがたまると、スーパーアタックが出せます":"El botón redondo de abajo a la derecha. Con la barra llena, lanzas un superataque","スーパーアタック":"Superataque"},
   hi: {"もり":"जंगल","うみ":"समुद्र","どくのぬま":"ज़हरीला दलदल","マグマ":"लावा","やしき":"हवेली","そら":"आसमान","こおり":"बर्फ़","うちゅう":"अंतरिक्ष","1UP! ライフが増えた":"1UP! एक जीवन और","ファイア":"फ़ायर","アイス":"आइस","ムチ":"कोड़ा","バリアがまもってくれた!":"ढाल ने तुम्हें बचा लिया!","ダメージ! ちいさくなった":"चोट लगी! तुम छोटे हो गए","しびれた! 2びょう うごけない":"झटका लगा! 2 सेकंड तक हिल नहीं सकते","じかんぎれ!":"समय खत्म!","やられた!":"हार गए!","れんぞくふみつけ 1UP!":"लगातार कुचलना 1UP!","れんぞく {n}!":"कॉम्बो {n}!","パワーベリー! おおきくなった":"पावर बेरी! तुम बड़े हो गए","ムチボタンで攻撃":"कोड़ा बटन से हमला करो","ボタンで発射":"बटन से चलाओ","Zキーで攻撃":"Z दबाकर हमला करो","Zキーで発射":"Z दबाकर चलाओ","ファイアシード!":"फ़ायर सीड!","アイスシード! 敵をこおらせる":"आइस सीड! दुश्मनों को जमा देता है","つるのムチ! 少し先までとどく":"बेल का कोड़ा! थोड़ी दूर तक पहुँचता है","にじベリー! 10びょう むてき":"इंद्रधनुष बेरी! 10 सेकंड तक अजेय","ダブルブーツ! 空中でもう1回ジャンプ":"डबल बूट्स! हवा में एक बार और कूदो","マント! ジャンプ長押しで ゆっくり落ちる":"केप! कूद दबाए रखो, धीरे-धीरे उतरोगे","ミニきのこ! ちいさなすき間を通れる。1回当たるとミス":"मिनी मशरूम! छोटी जगहों से निकल सकते हो। एक चोट लगी तो हार","じしゃく! コインをすいよせる":"चुंबक! सिक्के खींच लेता है","バリア! 1回だけ攻撃をふせぐ":"ढाल! एक वार रोक लेती है","スロー時計! 敵がゆっくりになる":"धीमी घड़ी! दुश्मन धीमे हो गए","むてきがきれた":"अजेयता खत्म हुई","ダブルブーツがきれた":"डबल बूट्स खत्म हुए","マントがきれた":"केप खत्म हुआ","じしゃくがきれた":"चुंबक खत्म हुआ","もとの大きさにもどった":"फिर से सामान्य आकार","どくでダメージ!":"ज़हर से चोट!","赤コイン5まい コンプリート! 1UP":"पाँचों लाल सिक्के! 1UP","赤コイン {n} / 5":"लाल सिक्के {n} / 5","チェックポイント!":"चेकपॉइंट!","ステージクリア!":"स्टेज पूरा!","コドラ":"कोडोरा","ドラゴ大王":"राजा ड्रैगो","ボスをたおした! ゴールへ!":"बॉस हार गया! मंज़िल की ओर!","ちゅうボスをたおした! ゴールへ!":"मिनी-बॉस हार गया! मंज़िल की ओर!","ボス ドラゴ大王! {how}でたおせ!":"बॉस: राजा ड्रैगो! {how} से हराओ!","ちゅうボス コドラ! ふんづけてたおせ!":"मिनी-बॉस कोडोरा! इस पर कूदकर हराओ!","ねばねば! しばらくジャンプが低くなる":"चिपचिपा! कुछ देर कम ऊँचा कूदोगे","すみをかけられた!":"स्याही पड़ गई!","かくし部屋! コインを集めて、おくの土管から出よう":"गुप्त कमरा! सिक्के इकट्ठा करो और पीछे वाले पाइप से बाहर निकलो","もとの道にもどった!":"फिर से मुख्य रास्ते पर!","ミニ":"मिनी","おおきい":"बड़ा","ちいさい":"छोटा"," ・":" · ","きょうのステージ":"आज का स्टेज","ちょうせん":"चुनौती","こうげき":"हमला","むてき":"अजेय","ブーツ":"जूते","マント":"केप","じしゃく":"चुंबक","スロー":"धीमा","ねばねば":"चिपचिपा","バリア":"ढाल","言語を選べるようになりました（日本語・English・中文・Español・हिन्दी）":"अब तुम भाषा चुन सकते हो (日本語, English, 中文, Español, हिन्दी)","敵・アイテム・しかけの3Dモデルを新しくしました":"दुश्मनों, आइटम और जालों के नए 3D मॉडल","ゲームの名前が「ぴょんラン」から「POV Jump」に変わりました":"खेल का नाम \"Pyon Run\" से बदलकर \"POV Jump\" हो गया","Xでのシェアに、スコア入りの画像と #gamedev #ゲーム開発 が付くようになりました":"X पर शेयर करने पर स्कोर वाली तस्वीर और #gamedev जुड़ जाता है","ちょうせんリンクがバージョンに対応しました":"चुनौती लिंक में अब गेम का वर्ज़न भी होता है","8つのテーマ、曲がり角や分かれ道、新しい敵・アイテム・しかけを追加しました":"8 दुनियाएँ, मोड़ और दोराहे, और नए दुश्मन, आइटम और जाल जोड़े गए","きょうのステージ、ちょうせんリンク、ゴーストを追加しました":"आज का स्टेज, चुनौती लिंक और घोस्ट जोड़े गए","アップデートしました（バージョン {v}）":"अपडेट हुआ (वर्ज़न {v})","#POVJump #gamedev #ゲーム開発":"#POVJump #gamedev #indiegame","きょうのステージ（{t}）":"आज का स्टेज ({t})","ステージ{n}（{t}）":"स्टेज {n} ({t})","POV Jumpで{h}をクリア！":"मैंने POV Jump में {h} पूरा किया!","スコア {s}":"स्कोर {s}","（赤コイン5まい！）":" (पाँचों लाल सिक्के!)","このステージに挑戦してね":"क्या तुम यह स्टेज पार कर सकते हो?","コピーしました":"कॉपी हो गया","コピーできませんでした":"कॉपी नहीं हो सका","きょうのステージ クリア!":"आज का स्टेज पूरा!","ステージ {n} クリア!":"स्टेज {n} पूरा!","{t} のステージ":"{t} दुनिया","スコア":"स्कोर","コイン {c}   赤コイン {r}/5":"सिक्के {c}   लाल सिक्के {r}/5","タイム {t}びょう":"समय {t} सेकंड","コイン {c}  ・  赤コイン {r}/5":"सिक्के {c}  ·  लाल सिक्के {r}/5","Xの投稿画面を開きました。画像は「記念画像」から保存して添付できます。":"X पोस्ट विंडो खुल गई। \"तस्वीर सहेजें\" से तस्वीर सहेजकर जोड़ो।","画像をコピーしました。Xの投稿画面で貼り付け（⌘V / Ctrl+V）すると、画像が付きます。":"तस्वीर कॉपी हो गई। X पोस्ट विंडो में पेस्ट करो (⌘V / Ctrl+V), तस्वीर जुड़ जाएगी।","Xの投稿画面を開きました。画像は下の「画像を保存」から保存して添付してください。":"X पोस्ट विंडो खुल गई। नीचे \"तस्वीर सहेजें\" से तस्वीर सहेजकर जोड़ो।","シェアしました。":"शेयर हो गया।","この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。":"यहाँ शेयर मेनू नहीं चलता। \"X पर शेयर करें\" या \"तस्वीर सहेजें\" इस्तेमाल करो।","前へ / 後ろへ":"आगे / पीछे","ジャンプ（長押しで高く。敵をふむ直前に押すと大ジャンプ）":"कूदो (दबाए रखो तो ऊँची छलांग; दुश्मन पर गिरने से ठीक पहले दबाओ तो बड़ी छलांग)","ダッシュ（Sでも走れます）":"दौड़ो (S से भी)","こうげき（ファイア・アイス・ムチを取ると使えます）":"हमला (फ़ायर, आइस या कोड़ा मिलने के बाद)","マウス":"माउस","見まわす（矢印キーでも見まわせます）":"चारों ओर देखो (तीर कुंजियों से भी)","左スティック":"बायाँ स्टिक","丸い部分に指をおいて、前後左右に動かします。いちばん外まで倒すとダッシュ":"गोले पर उँगली रखकर आगे-पीछे, दाएँ-बाएँ खिसकाओ। किनारे तक ले जाओ तो दौड़ोगे","ジャンプ":"कूदो","押している間は高く跳べます。敵をふむ直前に押すと大ジャンプ":"दबाए रखो तो ऊँची छलांग। दुश्मन पर गिरने से ठीक पहले दबाओ तो बड़ी छलांग","ファイア・アイス・ムチを取ると使えます":"फ़ायर, आइस या कोड़ा मिलने के बाद चलेगा","なぞる":"स्वाइप","画面をなぞって見まわします":"चारों ओर देखने के लिए स्क्रीन पर स्वाइप करो","水に入ると、動きがおそくなります。":"पानी में तुम धीमे चलोगे।","毒の水たまりに長くいると、ダメージを受けます。":"ज़हरीले पानी में ज़्यादा देर रुके तो चोट लगेगी।","マグマに落ちるとミス。ほのおの噴き出しに注意。":"लावा में गिरे तो एक जीवन गया। आग की लपटों से बचो।","暗い屋敷。ライトで照らして進みます。":"अँधेरी हवेली। रोशनी से रास्ता देखते हुए बढ़ो।","トランポリンで、空の高い足場へ行けます。":"ट्रैम्पोलिन से आसमान के ऊँचे प्लेटफ़ॉर्म तक पहुँचो।","氷の床はすべります。":"बर्फ़ीला फ़र्श फिसलन भरा है।","重力が弱く、高く跳べます。":"कम गुरुत्वाकर्षण में ऊँचा कूद सकते हो।","ここから「{t}」のステージ。":"यहाँ से \"{t}\" वाले स्टेज शुरू।","ゴール前に、ちゅうボスがまっています。":"मंज़िल से पहले एक मिनी-बॉस इंतज़ार कर रहा है।","ゴール前に、ボスがまっています。":"मंज़िल से पहले बॉस इंतज़ार कर रहा है।","ちょうせんが とどいています":"तुम्हें चुनौती मिली है!","ステージ {n}（{t}）":"स्टेज {n} ({t})","ステージのテーマの順番が、遊ぶたびにランダムになりました（最初の5ステージは森）":"थीम का क्रम अब हर बार रैंडम होता है (पहले 5 स्टेज हमेशा जंगल होते हैं)","ドラゴ大王のジャンプ着地の範囲が、10ステージごとに広がります":"ड्रैगन किंग के कूदकर उतरने की तरंग का दायरा हर 10 स्टेज पर बढ़ता है","ボス ドラゴ大王! ふらふらのときに 頭をふんでダメージ!":"बॉस ड्रैगन किंग! जब वह चकराए तो उसके सिर पर कूदकर चोट पहुँचाओ!","ファイアがなくても、ドラゴ大王は着地やブレスのあとに頭をふめばダメージを与えられます":"फ़ायर न हो तब भी, ड्रैगन किंग के उतरने या आग उगलने के बाद उसके सिर पर कूदकर चोट पहुँचा सकते हो","ファイアボールが、くるくる回る火の玉になり、マグマの炎や毒ガスも、ほんものらしくなりました":"फायरबॉल अब घूमती हुई आग का गोला बन गई है, और लावा की लपटें और ज़हरीली गैस भी ज़्यादा असली लगती हैं","ムチがしなり、雷・ブレス・毒の泡・アイスのエフェクトも、迫力アップしました":"चाबुक अब असली चाबुक की तरह मुड़कर चटकती है, और बिजली, साँस, ज़हरीले बुलबुलों और बर्फ़ के इफ़ेक्ट भी ज़्यादा दमदार हैं","ゲームオーバー画面からも、到達したステージとスコアをXでシェアできるようになりました":"अब गेम ओवर स्क्रीन से भी पहुँचा हुआ स्टेज और स्कोर X पर शेयर किया जा सकता है","どうくつ":"गुफा","まち":"शहर","さばく":"रेगिस्तान","天井から石が落ちてきます。ゆれたら、すぐはなれて。":"छत से पत्थर गिरते हैं। हिलता दिखे तो तुरंत हट जाओ।","動く歩道に乗ると、流されます。":"चलते रास्ते पर खड़े होने से आप बह जाते हैं।","流砂に入ると、足が遅くなり、ジャンプが低くなります。":"दलदली रेत में आप धीमे हो जाते हैं और कम ऊँचा कूदते हैं।","新しいステージ「どうくつ」「まち」「さばく」を追加しました（テーマは全部で11種類）":"नए स्टेज जोड़े गए: गुफा, शहर और रेगिस्तान (कुल 11 थीम)","モリノヌシ":"वन रक्षक","ユキダルマン":"हिममानव राजा","ゼリーキング":"जेली राजा","ちゅうボス モリノヌシ! 突進を大木にぶつけて、目を回したら頭をふめ!":"मिनी-बॉस वन रक्षक! उसे बड़े पेड़ से टकराने दो, फिर चक्कर खाते समय उसके सिर पर कूदो!","ちゅうボス ユキダルマン! ファイアかムチでとかして、さいごに頭をふめ!":"मिनी-बॉस हिममानव राजा! आग या चाबुक से पिघलाओ, फिर आख़िर में सिर पर कूदो!","ボス ゼリーキング! あてるたびに分裂する。ぜんぶたおせ!":"बॉस जेली राजा! हर वार पर वह टूटकर बँट जाता है। सब टुकड़ों को हराओ!","いまだ! 頭をふめ!":"अभी! सिर पर कूदो!","アイスは ユキダルマンを回復させてしまう!":"बर्फ़ से हिममानव राजा ठीक हो जाता है!","新しいボス「モリノヌシ」「ユキダルマン」「ゼリーキング」が登場します（15ステージから）":"स्टेज 15 से नए बॉस: वन रक्षक, हिममानव राजा और जेली राजा","よろいナイト":"कवच योद्धा","ばくだんキング":"बम राजा","ドクガエルおう":"ज़हरीला मेंढक राजा","ダイオウダコ":"विशाल ऑक्टोपस","マグマゴーレム":"लावा गोलम","サンダーバード":"वज्र पक्षी","コスモアイ":"कॉस्मो आँख","ドラゴ大魔王":"दानव सम्राट ड्रैगो","ちゅうボス よろいナイト! シャンデリアを落として、鎧をくずせ!":"मिनी-बॉस कवच योद्धा! उस पर झूमर गिराकर कवच तोड़ो!","ちゅうボス ばくだんキング! ボムをけり返して、ころばせろ!":"मिनी-बॉस बम राजा! बम वापस किक करके उसे गिराओ!","ちゅうボス ドクガエルおう! 毒の泡をふんで高くはね、王冠をふめ!":"मिनी-बॉस ज़हरीला मेंढक राजा! ज़हरीले बुलबुलों पर उछलकर उसके मुकुट पर कूदो!","ボス ダイオウダコ! 触手を全部落として、頭をふめ!":"बॉस विशाल ऑक्टोपस! सारे तंबू गिराओ, फिर सिर पर कूदो!","ボス マグマゴーレム! 柱の上にさそって、スイッチをふめ!":"बॉस लावा गोलम! उसे खंभे के ऊपर लाओ और स्विच दबाओ!","ボス サンダーバード! 避雷針のそばで雷をさそえ。落ちてきたらふめ!":"बॉस वज्र पक्षी! तड़ित-चालक के पास बिजली गिरवाओ, गिरे तो उस पर कूदो!","ボス コスモアイ! スーパーファイアフラワーを取って、瞳をうて!":"बॉस कॉस्मो आँख! सुपर फ़ायर फूल लेकर उसकी पुतली पर वार करो!","ドラゴ大魔王があらわれた! 柱の上にさそって、スイッチをふめ!":"दानव सम्राट ड्रैगो आ गया! उसे खंभे के ऊपर लाओ और स्विच दबाओ!","スーパーファイア! こうげきボタンで ボスをうて!":"सुपर फ़ायर! हमला बटन से बॉस पर वार करो!","鎧がくずれた! 兜をふめ!":"कवच टूट गया! हेलमेट पर कूदो!","ころんだ! いまだ!":"वह गिर गया! अभी!","王冠にとどいた!":"मुकुट तक पहुँच गए!","とどかない… 毒の泡をふんで高くはねよう!":"बहुत ऊँचा… ज़हरीले बुलबुले पर उछलो!","頭が落ちた! ふめ!":"सिर नीचे आ गया! कूदो!","打ち上げた!":"उछाल दिया!","感電して落ちてきた! ふめ!":"करंट लगा और गिर गया! कूदो!","ふつうの攻撃は少ししか効かない! スーパーファイアフラワーをさがせ":"साधारण वार बस हल्का सा असर करते हैं! सुपर फ़ायर फूल ढूँढो","大魔王が空へ! 青い炎がくる。遮蔽物のかげにかくれろ!":"दानव सम्राट आसमान में! नीली लपटें आ रही हैं। आड़ के पीछे छिपो!","核がむき出しになった! スーパーファイアで核をうて!":"उसका कोर खुल गया! सुपर फ़ायर से कोर पर वार करो!","青い炎がくる! かくれろ!":"नीली लपटें आ रही हैं! छिपो!","青い炎がくる! 遮蔽物のかげにかくれろ!":"नीली लपटें आ रही हैं! आड़ के पीछे छिपो!","大魔王がつかれている! いまだ!":"दानव सम्राट थक गया! अभी!","いまだ!":"अभी!","ドラゴ大魔王をたおした!! ライフ+3":"दानव सम्राट ड्रैगो को हरा दिया!! +3 जान","100面ボス撃破!":"स्टेज 100 का बॉस हराया!","さらに「よろいナイト」「ばくだんキング」「ドクガエルおう」「ダイオウダコ」「マグマゴーレム」「サンダーバード」「コスモアイ」も登場します":"और भी नए: कवच योद्धा, बम राजा, ज़हरीला मेंढक राजा, विशाल ऑक्टोपस, लावा गोलम, वज्र पक्षी और कॉस्मो आँख","100ステージごとに、超強敵「ドラゴ大魔王」があらわれます":"हर 100 स्टेज पर महाशक्तिशाली दानव सम्राट ड्रैगो आता है","POV Jumpで{h}まで行きました！":"मैं POV Jump में {h} तक पहुँचा!","POV Jumpで{h}にちょうせんしました！":"मैंने POV Jump में {h} को चुनौती दी!","ここまで来られるかな？":"क्या आप यहाँ तक पहुँच पाएँगे?","ステージ {n} まで到達!":"स्टेज {n} तक पहुँचा!","ゲームが更新されたため、送られたときとステージの形が少し変わっています。":"गेम अपडेट हुआ है, इसलिए स्टेज भेजे गए स्टेज से थोड़ा अलग हो सकता है।","このステージに ちょうせん":"चुनौती स्वीकार करो","・":", ","FPS ジャンプアクション":"फ़र्स्ट-पर्सन 3D जंप एक्शन","一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。":"फ़र्स्ट-पर्सन में दौड़ो, कूदो और मंज़िल तक पहुँचो। हर बार नया स्टेज बनता है, और हर 5 स्टेज पर दुनिया बदलती है: {w}।","はじめる":"शुरू करो","せってい":"सेटिंग्स","キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。":"कैरेक्टर मॉडल लोड नहीं हुए, इसलिए सरल आकार दिखेंगे।","キャラクターを読みこみ中…":"कैरेक्टर लोड हो रहे हैं…","横向きにすると遊びやすくなります。":"फ़ोन को आड़ा करके खेलना आसान है।","Enter キーでも始められます。":"Enter दबाकर भी शुरू कर सकते हो।","バージョン {v}（{d} 更新）":"वर्ज़न {v} ({d} को अपडेट)","ハイスコア {s}":"हाई स्कोर {s}","とうたつステージ {n}":"सबसे दूर स्टेज {n}","きょうのステージは {n}（{t}）":"आज का स्टेज: {n} ({t})","ポーズ":"पॉज़","つづける":"जारी रखो","ステージ1から":"स्टेज 1 से","タイトルへ":"मुख्य स्क्रीन पर","ことば":"भाषा","おんりょう":"आवाज़","ミュート":"म्यूट","視点のかんど":"देखने की संवेदनशीलता","視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。":"यह माउस, स्वाइप और तीर कुंजियों पर लागू होती है। संख्या जितनी बड़ी, उतनी तेज़ी से मुड़ोगे।","もどる":"वापस","ゲームオーバー":"गेम ओवर","とうたつステージ":"पहुँचा स्टेज","コイン":"सिक्के","R キーでも再挑戦できます。":"R दबाकर फिर से कोशिश करो।","タイム":"समय","{t}びょう":"{t} सेकंड","じこベスト":"सबसे अच्छा","きょうのステージ {n}（{t}）":"आज का स्टेज {n} ({t})","クリア!":"पूरा!","自己ベスト!":"नया रिकॉर्ड!","タイムボーナス":"समय बोनस","赤コイン":"लाल सिक्के","ハイスコア":"हाई स्कोर","ステージ {n} へ":"स्टेज {n} पर चलो","このゲームを広める":"यह गेम शेयर करो","Xでシェア（画像つき）":"X पर शेयर करें (तस्वीर के साथ)","スマホで画像つきシェア":"फ़ोन से तस्वीर के साथ शेयर","リンクをコピー":"लिंक कॉपी करें","シェアする画像":"शेयर की जाने वाली तस्वीर","スコアの入った画像と、{tags} のハッシュタグが付きます。":"स्कोर वाली तस्वीर और {tags} हैशटैग जुड़ेंगे।","画像を保存":"तस्वीर सहेजें","ストーリーズ用（縦長）":"स्टोरीज़ के लिए (लंबी)","Enter キーでも進めます。R キーでステージ1から。":"आगे बढ़ने के लिए Enter दबाओ। स्टेज 1 से शुरू करने के लिए R दबाओ।","きょうのステージ {n}「{t}」スタート!":"आज का स्टेज {n}: \"{t}\" शुरू!","ステージ {n}「{t}」スタート!":"स्टेज {n}: \"{t}\" शुरू!","ボスせん":"बॉस की लड़ाई","ちゅうボスせん":"मिनी-बॉस की लड़ाई","画面をなぞって見まわせます":"चारों ओर देखने के लिए स्क्रीन पर स्वाइप करो","矢印キーかドラッグで見まわせます":"तीर कुंजियों या ड्रैग से चारों ओर देखो","チェックポイントからやりなおし":"चेकपॉइंट से फिर शुरू","もういちど!":"फिर से!","クリア記念の画像":"जीत की यादगार तस्वीर","インスタグラムのストーリーズなどに使えます。":"Instagram स्टोरीज़ वगैरह में लगा सकते हो।","画像を作れませんでした。":"तस्वीर नहीं बन सकी।","保存しました。":"सहेज लिया।","保存をやめました。":"सहेजना रद्द हुआ।","少し待ってから、もう一度押してください。":"थोड़ा रुककर फिर से दबाओ।","このアプリでは保存できません。ブラウザかパソコンで開いてください。":"इस ऐप में सहेज नहीं सकते। ब्राउज़र या कंप्यूटर में खोलो।","画像を長押し（パソコンは右クリック）で保存してください。":"तस्वीर को देर तक दबाकर (कंप्यूटर पर राइट-क्लिक) सहेजो।","保存しました。うまくいかないときは、画像を長押し（右クリック）で保存してください。":"सहेज लिया। अगर न हुआ हो तो तस्वीर को देर तक दबाकर (या राइट-क्लिक) सहेजो।","おと: オフ":"आवाज़: बंद","おと: オン":"आवाज़: चालू","ステージ":"स्टेज","のこり":"समय","ライフ":"जीवन","うしろ!":"पीछे!","いどう":"चलो","ダッシュ":"दौड़","おと":"आवाज़","しびれて うごけない!":"झटका लगा! हिल नहीं सकते!","たおしかた":"कैसे हराएँ","触手をたたきつけたあとに頭をふむと、触手が切れる!":"तंबू के ज़मीन पर पटकने के ठीक बाद सिर पर कूदो, वह तंबू कट जाएगा!","ふんづけてたおす。ファイアなどでもOK":"उस पर कूदकर हराओ। फ़ायर जैसी शक्तियाँ भी काम करती हैं","ふらふらのとき(着地・ブレスのあと)に頭をふむ。ファイアなどでも少しダメージ":"चक्कर में होने पर (लैंडिंग या साँस के बाद) सिर पर कूदो। फ़ायर आदि से भी थोड़ा नुकसान होता है","とっしんを大木にぶつけさせる。目を回したら頭をふむ(3回)":"इसे बड़े पेड़ से टकराने दो। चक्कर आने पर सिर पर कूदो (3 बार)","ブレスで息切れしたら頭をふむと雪が1段へる。さいごは頭をふむ。ファイア・ムチでもとける(アイスは回復)":"साँस फूलने पर सिर पर कूदो, बर्फ़ की एक परत हटेगी। आख़िर में सिर पर कूदो। फ़ायर और चाबुक भी पिघलाते हैं (आइस उसे ठीक कर देता है)","ふむと分裂する。小さくなるまで ぜんぶふむ(合計7回)":"चोट लगने पर बँट जाता है। सारे टुकड़ों पर कूदो (कुल 7 वार)","剣をふりおろすと、天井のシャンデリアが落ちる。ナイトの上に落として鎧をくずし、兜をふむ(3回)":"तलवार पटकने पर छत का झूमर गिरता है। उसे नाइट पर गिराकर कवच तोड़ो, फिर हेलमेट पर कूदो (3 बार)","とんでくるボムをけり返す。ころんだら頭をふむ":"आते बम को लात मारकर लौटाओ। वह गिरे तो सिर पर कूदो","毒の泡をふんで高くはね、頭の王冠をふむ":"ज़हरीले बुलबुले पर कूदकर ऊँचा उछलो और सिर के मुकुट पर कूदो","触手のたたきつけのあとに頭をふむと、触手が切れる。6本切ったら、落ちてきた頭をふむ":"तंबू पटकने के बाद सिर पर कूदो, वह तंबू कट जाएगा। छहों कटने पर गिरे हुए सिर पर कूदो","柱の上にさそい出し、スイッチをふんで打ち上げる":"इसे खंभों पर बुलाओ, फिर स्विच दबाकर उछाल दो","避雷針のそばで雷をさそう。落ちてきたらふむ":"बिजली की छड़ के पास बिजली गिरवाओ। वह गिरे तो उस पर कूदो","出てくるスーパーファイアフラワーを取って、瞳をうつ":"दिखने वाला सुपर फ़ायर फूल लो और उसकी आँख पर निशाना लगाओ","1:柱の上にさそってスイッチをふむ 2:青い炎は物かげでふせぎ、へたりこんだらふむ 3:スーパーファイアで核をうつ":"1: इसे खंभों पर बुलाकर स्विच दबाओ 2: नीली लपटों से ओट में बचो; वह गिरे तो कूदो 3: सुपर फ़ायर से कोर पर निशाना लगाओ","ボス戦中に、画面の左上に「たおしかた」(パワーなしでの倒しかた)が出るようになりました":"बॉस की लड़ाई में अब ऊपर बाईं ओर «कैसे हराएँ» (बिना शक्ति के हराने का तरीक़ा) दिखता है","ファイア・アイス・ムチなどでも、どのボスにも少しダメージが入ります(ユキダルマンにアイスは回復のまま)":"फ़ायर, आइस, चाबुक जैसी शक्तियाँ अब हर बॉस को थोड़ा नुकसान पहुँचाती हैं (आइस अब भी हिममानव राजा को ठीक करता है)","ダイオウダコは、触手のたたきつけのあとに頭をふむと、パワーなしでも触手を切れます":"अब बिना शक्ति के भी विशाल ऑक्टोपस के तंबू काटे जा सकते हैं: तंबू पटकने के बाद उसके सिर पर कूदो","ボスの出る確率が、ドラゴ大魔王(100面)をのぞいて、ぜんぶ同じになりました":"अब हर बॉस के आने की संभावना बराबर है, सिर्फ़ 100वें स्टेज पर आने वाला दानव सम्राट ड्रैगो हमेशा आता है","サンダー":"थंडर","ダメージ! パワーがなくなった":"चोट लगी! तुम्हारी शक्ति चली गई","サンダーシード! 電気が となりの敵へ つたわる":"थंडर सीड! करंट पास के दुश्मनों तक फैलता है","スーパーアタック OK! ボタンで発動":"सुपर अटैक तैयार! बटन दबाओ","スーパーアタック OK! Cキーで発動":"सुपर अटैक तैयार! C दबाओ","パワーベリー":"पावर बेरी","ファイアシード":"फ़ायर सीड","アイスシード":"आइस सीड","つるのたね":"बेल का बीज","サンダーシード":"थंडर सीड","にじベリー":"इंद्रधनुष बेरी","ダブルブーツ":"डबल बूट्स","スロー時計":"धीमी घड़ी","ミニきのこ":"मिनी मशरूम","{item} をストックした":"{item} रख लिया","タップで使う":"इस्तेमाल के लिए टैप करो","Xキーで使う":"इस्तेमाल के लिए X दबाओ","もう おおきい!":"तुम पहले से बड़े हो!","もう そのパワーをもっている":"यह शक्ति तुम्हारे पास पहले से है","ふむと分裂する。小さくなるまで ぜんぶふむ(合計5回)":"कुचलने पर यह बँट जाता है। हर टुकड़े को कुचलो (कुल 5 बार)","かくし部屋! パワーを1つだけえらべる。おくの土管から出よう":"गुप्त कमरा! एक शक्ति चुनो, फिर पीछे वाले पाइप से निकलो","なし":"खाली","新しいパワー「サンダー」: 電気の玉が、だんだん速くなって飛びます。当たった敵のとなりへ、感電が次々に広がります":"नई शक्ति \"थंडर\": बिजली की गेंद उड़ते हुए तेज़ होती जाती है। जिस दुश्मन को लगे, उससे करंट पास वालों तक फैलता है","スーパーアタック: 90秒でゲージがたまり(敵を1体倒すごとに1秒短く)、自分の状態に合わせた大技が出せます":"सुपर अटैक: गेज 90 सेकंड में भरता है (हर दुश्मन हराने पर 1 सेकंड कम), और तुम्हारी हालत के हिसाब से बड़ा वार निकलता है","アイテムを1個だけストックできます(Xキー / 右上をタップで使う)":"तुम एक चीज़ रख सकते हो (इस्तेमाल के लिए X दबाओ या ऊपर दाईं ओर टैप करो)","パワーがあるときにダメージを受けても、まず大きい状態にもどるだけになりました":"शक्ति होने पर चोट लगे तो अब पहले सिर्फ़ बड़े रूप में लौटते हो","ムチでコインが取れます。正体をあらわす前のにせコインも、ムチやパワーで倒せます":"कोड़े से अब सिक्के मिलते हैं। नकली सिक्कों को असली रूप दिखाने से पहले भी कोड़े या शक्ति से हराया जा सकता है","かくし部屋に、パワーを1つえらべる部屋がふえました":"कुछ गुप्त कमरों में अब एक शक्ति चुन सकते हो","ボス(中ボス以外)の体力を、およそ4分の3にしました。どの敵・どの状態にも、パワーが効くようになりました":"बॉस (मिड-बॉस नहीं) की ताकत अब लगभग तीन-चौथाई है। अब हर दुश्मन पर, हर हालत में शक्ति काम करती है","空・地面・水・毒・マグマの絵や、木や岩などの飾りを、たくさん新しくしました":"आसमान, ज़मीन, पानी, ज़हर और लावा की बहुत सारी नई तस्वीरें, साथ में नए पेड़, चट्टानें और सजावट","こうげき（ファイア・アイス・ムチ・サンダーを取ると使えます）":"हमला (फ़ायर, आइस, कोड़ा या थंडर मिलने पर)","ストックしたアイテムを使う（1個までストックできます）":"रखी हुई चीज़ इस्तेमाल करो (एक रख सकते हो)","スーパーアタック（ゲージがたまると使えます）":"सुपर अटैक (गेज भरने पर)","ファイア・アイス・ムチ・サンダーを取ると使えます":"फ़ायर, आइस, कोड़ा या थंडर मिलने पर","ストック":"स्टॉक","右上の「ストック」をタップすると、とっておいたアイテムを使います":"रखी हुई चीज़ इस्तेमाल करने के लिए ऊपर दाईं ओर \"स्टॉक\" टैप करो","スーパー":"सुपर","右下の丸いボタン。ゲージがたまると、スーパーアタックが出せます":"नीचे दाईं ओर गोल बटन। गेज भरने पर सुपर अटैक निकलता है","スーパーアタック":"सुपर अटैक"}
 };
+/* 4.9 で足した文 */
+Object.assign(DICT.en, {
+  'つづきから（ステージ {n}）': 'Continue (Stage {n})', 'ライフ {l} ・ スコア {s}': 'Lives {l} · Score {s}', 'はじめから': 'New game',
+  'ほんとうに はじめから？ セーブがきえます': 'Start over? Your saved run will be erased',
+  'ボス戦の とちゅうから やりなおし!': 'Back in the boss fight!',
+  '動画をじゅんびしています…': 'Preparing your video…', '直前{n}びょうのプレイ動画': 'Your last {n} seconds',
+  'スマホで動画つきシェア': 'Share video', '動画を保存': 'Save video', '動画を保存して Xを開く': 'Save video & open X',
+  '動画を保存しました。Xの投稿画面で、保存した動画を追加してください。': 'Video saved. Add it to your post on X.',
+  'この画面では動画の共有ができません。「動画を保存」を使ってください。': 'Sharing is not available here. Use “Save video”.',
+  'Xには、動画か画像のどちらか1つだけ付けられます。': 'X lets you attach either a video or images, not both.',
+  'ゲームオーバーの動画を録画する': 'Record a video at Game Over', '録画は、スマホが重いときに切ると軽くなります。': 'Turn recording off if the game feels slow on your phone.',
+  'ゲームオーバーのとき、直前15秒のプレイ動画ができて、Xなどに動画つきでシェアできます（スマホは共有メニューから、パソコンは保存して追加）。設定で録画を切ることもできます': 'At Game Over you now get a video of your last 15 seconds, ready to share on X (phones: share menu; PC: save it and add it to your post). You can turn recording off in Settings.',
+  'ゲームの途中経過が自動で保存されます。もどってきたら、タイトルの「つづきから」で、そのステージの最初から再開できます': 'Your progress is saved automatically. Next time, press “Continue” on the title screen to resume from the start of that stage.',
+  'ボス戦でミスしても、ライフが残っていれば、ボスの状態はそのまま、ボス戦の入口から再開します': 'If you lose a life in a boss fight, you restart at the arena entrance and the boss keeps its damage.',
+  'ボス戦では、ザコ敵が出てこなくなりました': 'Regular enemies no longer appear during boss fights.'
+});
+Object.assign(DICT.zh, {
+  'つづきから（ステージ {n}）': '继续游戏（第{n}关）', 'ライフ {l} ・ スコア {s}': '生命 {l} · 得分 {s}', 'はじめから': '重新开始',
+  'ほんとうに はじめから？ セーブがきえます': '真的要重新开始吗？存档将被清除', 'ボス戦の とちゅうから やりなおし!': '从Boss战中途继续！',
+  '動画をじゅんびしています…': '正在生成视频…', '直前{n}びょうのプレイ動画': '最后{n}秒的游戏视频',
+  'スマホで動画つきシェア': '分享视频', '動画を保存': '保存视频', '動画を保存して Xを開く': '保存视频并打开X',
+  '動画を保存しました。Xの投稿画面で、保存した動画を追加してください。': '视频已保存。请在X的发帖页面添加该视频。',
+  'この画面では動画の共有ができません。「動画を保存」を使ってください。': '此页面无法分享视频。请使用“保存视频”。',
+  'Xには、動画か画像のどちらか1つだけ付けられます。': 'X 只能附加视频或图片中的一种。',
+  'ゲームオーバーの動画を録画する': '游戏结束时录制视频', '録画は、スマホが重いときに切ると軽くなります。': '如果手机运行卡顿，请关闭录制。'
+});
+Object.assign(DICT.es, {
+  'つづきから（ステージ {n}）': 'Continuar (Nivel {n})', 'ライフ {l} ・ スコア {s}': 'Vidas {l} · Puntos {s}', 'はじめから': 'Nueva partida',
+  'ほんとうに はじめから？ セーブがきえます': '¿Empezar de nuevo? Se borrará tu partida guardada', 'ボス戦の とちゅうから やりなおし!': '¡De vuelta en la pelea contra el jefe!',
+  '動画をじゅんびしています…': 'Preparando tu vídeo…', '直前{n}びょうのプレイ動画': 'Tus últimos {n} segundos',
+  'スマホで動画つきシェア': 'Compartir vídeo', '動画を保存': 'Guardar vídeo', '動画を保存して Xを開く': 'Guardar vídeo y abrir X',
+  '動画を保存しました。Xの投稿画面で、保存した動画を追加してください。': 'Vídeo guardado. Añádelo a tu publicación en X.',
+  'この画面では動画の共有ができません。「動画を保存」を使ってください。': 'Aquí no se puede compartir. Usa «Guardar vídeo».',
+  'Xには、動画か画像のどちらか1つだけ付けられます。': 'En X puedes adjuntar un vídeo o imágenes, no ambos.',
+  'ゲームオーバーの動画を録画する': 'Grabar un vídeo al terminar la partida', '録画は、スマホが重いときに切ると軽くなります。': 'Desactiva la grabación si el juego va lento en tu móvil.'
+});
+Object.assign(DICT.hi, {
+  'つづきから（ステージ {n}）': 'जारी रखें (स्टेज {n})', 'ライフ {l} ・ スコア {s}': 'जीवन {l} · स्कोर {s}', 'はじめから': 'नया खेल',
+  'ほんとうに はじめから？ セーブがきえます': 'फिर से शुरू करें? सेव किया हुआ खेल मिट जाएगा', 'ボス戦の とちゅうから やりなおし!': 'बॉस की लड़ाई में वापस!',
+  '動画をじゅんびしています…': 'वीडियो तैयार हो रहा है…', '直前{n}びょうのプレイ動画': 'आपके आखिरी {n} सेकंड',
+  'スマホで動画つきシェア': 'वीडियो शेयर करें', '動画を保存': 'वीडियो सेव करें', '動画を保存して Xを開く': 'वीडियो सेव करें और X खोलें',
+  '動画を保存しました。Xの投稿画面で、保存した動画を追加してください。': 'वीडियो सेव हो गया। X की पोस्ट में इसे जोड़ें।',
+  'この画面では動画の共有ができません。「動画を保存」を使ってください。': 'यहाँ शेयर नहीं हो सकता। “वीडियो सेव करें” का उपयोग करें।',
+  'Xには、動画か画像のどちらか1つだけ付けられます。': 'X पर वीडियो या तस्वीरों में से सिर्फ़ एक ही जोड़ी जा सकती है।',
+  'ゲームオーバーの動画を録画する': 'गेम ओवर पर वीडियो रिकॉर्ड करें', '録画は、スマホが重いときに切ると軽くなります。': 'अगर फ़ोन पर गेम धीमा चले, तो रिकॉर्डिंग बंद करें।'
+});
 
 /* ================= 3Dモデル(ChatGPTで作ったGLBを1つのファイルにまとめたもの) ================= */
 /* models.bin = [u32 ヘッダ長][JSONヘッダ][int16 位置 / uint16 インデックス]。向きはゲーム用(正面 -Z)に変換済み。配信は base64 にした models.json */
@@ -2518,7 +2570,7 @@ function stunPlayer() {
 function die(why) {
   if (S.mode !== 'play') return;
   S.mode = 'dead'; P.dead = true; P.deadT = 2.1; P.deadMode = why; P.stun = 0; P.star = 0;
-  S.lives--; sfx('die'); flash();
+  S.lives--; sfx('die'); flash(); saveLives();
   P.vy = why === 'fall' ? 0 : 11; P.vx = P.vz = 0;
   toast(T(why === 'time' ? 'じかんぎれ!' : 'やられた!'), 1800);
   cross.classList.remove('on');
@@ -2838,7 +2890,7 @@ function win() {
   S.bonus = Math.floor(S.timeF) * 10; addScore(S.bonus);
   if (S.score > S.best) { S.best = S.score; try { localStorage.setItem('pyonran-best', String(S.best)); } catch (e) {} }
   if (S.play === 'normal' && S.stage + 1 > S.bestStage) { S.bestStage = S.stage + 1; try { localStorage.setItem('pyonran-beststage', String(S.bestStage)); } catch (e) {} }
-  saveGhostIfBest();
+  saveGhostIfBest(); saveRun(S.stage + 1);
   sfx('clear'); toast(T('ステージクリア!'), 3000); cross.classList.remove('on');
 }
 
@@ -4214,7 +4266,7 @@ function fireBoss(e, dmg) {
   if (e.hp <= 0) defeat(e);
 }
 function startFight() {
-  S.fightOn = true; S.cpU = LV.arena.a + 2;
+  S.fightOn = true; S.cpU = LV.arena.a + 2; clearZako();
   barEntry = addBarrier(LV.arena.a, true);
   sfx('wall'); S.shake = 0.35;
   if (S.boss && S.boss.bid && BOSS_IMPL[S.boss.bid]) { toast(T(BOSS_IMPL[S.boss.bid].intro), 3200); return; }
@@ -6690,9 +6742,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.8', GAME_DATE = '2026-11-26', GEN_VER = 6;
+const GAME_VER = '4.9', GAME_DATE = '2026-11-26', GEN_VER = 6;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.9', t: ['ゲームオーバーのとき、直前15秒のプレイ動画ができて、Xなどに動画つきでシェアできます（スマホは共有メニューから、パソコンは保存して追加）。設定で録画を切ることもできます', 'ゲームの途中経過が自動で保存されます。もどってきたら、タイトルの「つづきから」で、そのステージの最初から再開できます', 'ボス戦でミスしても、ライフが残っていれば、ボスの状態はそのまま、ボス戦の入口から再開します', 'ボス戦では、ザコ敵が出てこなくなりました'] },
   { v: '4.8', t: ['新しいパワー「サンダー」: 電気の玉が、だんだん速くなって飛びます。当たった敵のとなりへ、感電が次々に広がります', 'スーパーアタック: 90秒でゲージがたまり(敵を1体倒すごとに1秒短く)、自分の状態に合わせた大技が出せます', 'アイテムを1個だけストックできます(Xキー / 右上をタップで使う)', 'パワーがあるときにダメージを受けても、まず大きい状態にもどるだけになりました', 'ムチでコインが取れます。正体をあらわす前のにせコインも、ムチやパワーで倒せます', 'かくし部屋に、パワーを1つえらべる部屋がふえました', 'ボス(中ボス以外)の体力を、およそ4分の3にしました。どの敵・どの状態にも、パワーが効くようになりました', '空・地面・水・毒・マグマの絵や、木や岩などの飾りを、たくさん新しくしました'] },
   { v: '4.7', t: ['ボス戦中に、画面の左上に「たおしかた」(パワーなしでの倒しかた)が出るようになりました', 'ファイア・アイス・ムチなどでも、どのボスにも少しダメージが入ります(ユキダルマンにアイスは回復のまま)', 'ダイオウダコは、触手のたたきつけのあとに頭をふむと、パワーなしでも触手を切れます', 'ボスの出る確率が、ドラゴ大魔王(100面)をのぞいて、ぜんぶ同じになりました'] },
   { v: '4.6', t: ['新しいボス「モリノヌシ」「ユキダルマン」「ゼリーキング」が登場します（15ステージから）', 'さらに「よろいナイト」「ばくだんキング」「ドクガエルおう」「ダイオウダコ」「マグマゴーレム」「サンダーバード」「コスモアイ」も登場します', '100ステージごとに、超強敵「ドラゴ大魔王」があらわれます'] },
@@ -6812,6 +6865,187 @@ function imageShare() {
     navigator.share(data).then(function () { shareMsg(T('シェアしました。')); }, function () {});
   } catch (e) { shareMsg(T('この画面では共有メニューが使えません。「Xでシェア」か「画像を保存」を使ってください。')); showSaveX(); }
 }
+/* ================= プレイ動画(直前15秒) =================
+   ゲーム画面を1秒30コマのH.264にしながら、直前15秒ぶんだけ手もとに残す(古いぶんは捨てる)。
+   ゲームオーバーのとき、その部分を1つのMP4にまとめて、Xなどにシェアできるようにする。音は入らない。
+   端末が対応していない(WebCodecsがない)ときは、何もせず、画像のシェアだけになる。 */
+const REC_SEC = 15, REC_FPS = 30, REC_KEYN = 30;
+const REC_CODECS = ['avc1.42001f', 'avc1.4d001f', 'avc1.64001f'];
+const REC = { st: 'idle', enc: null, off: null, ctx: null, w: 0, h: 0, chunks: [], desc: null, ts: 0, last: 0, sinceKey: 0, gen: 0 };
+function recAvail() { return typeof VideoEncoder === 'function' && typeof VideoFrame === 'function' && typeof VideoEncoder.isConfigSupported === 'function'; }
+function recDims() {
+  const c = renderer.domElement; let w = c.width, h = c.height;
+  if (!(w > 0 && h > 0)) return null;
+  const k = Math.min(1, 1280 / w, 720 / h);
+  return { w: Math.max(2, Math.floor(w * k / 2) * 2), h: Math.max(2, Math.floor(h * k / 2) * 2) };
+}
+function recStop() {
+  REC.gen++;
+  try { if (REC.enc && REC.enc.state !== 'closed') REC.enc.close(); } catch (e) {}
+  REC.enc = null; REC.chunks = []; REC.desc = null; REC.ts = 0; REC.last = 0; REC.sinceKey = 0;
+  if (REC.st !== 'fail') REC.st = 'idle';
+}
+function recPush(chunk, meta) {
+  const u8 = new Uint8Array(chunk.byteLength); chunk.copyTo(u8);
+  const d = meta && meta.decoderConfig && meta.decoderConfig.description;
+  if (d && !REC.desc) REC.desc = new Uint8Array(ArrayBuffer.isView(d) ? d.buffer.slice(d.byteOffset, d.byteOffset + d.byteLength) : d.slice(0));
+  REC.chunks.push({ t: chunk.timestamp, k: chunk.type === 'key', d: u8 });
+  /* 15秒より前のぶんを捨てる。ただし、15秒前かそれより前の「最後のキーフレーム」からは残す(そこから再生できるように) */
+  const lim = chunk.timestamp - REC_SEC * 1e6;
+  for (let i = REC.chunks.length - 1; i > 0; i--) {
+    const c = REC.chunks[i];
+    if (c.k && c.t <= lim) { if (i > 0) REC.chunks.splice(0, i); break; }
+  }
+}
+function recStart(d) {
+  recStop(); REC.st = 'init'; REC.w = d.w; REC.h = d.h;
+  const gen = REC.gen;
+  if (!REC.off) REC.off = document.createElement('canvas');
+  REC.off.width = d.w; REC.off.height = d.h;
+  REC.ctx = REC.off.getContext('2d', { alpha: false });
+  const bitrate = Math.round(Math.max(1.2e6, Math.min(3e6, d.w * d.h * 2.6)));
+  let i = 0;
+  const next = function () {
+    if (gen !== REC.gen) return;
+    if (i >= REC_CODECS.length) { REC.st = 'fail'; return; }
+    const cfg = { codec: REC_CODECS[i++], width: d.w, height: d.h, bitrate: bitrate, framerate: REC_FPS, avc: { format: 'avc' }, latencyMode: 'realtime' };
+    let p; try { p = VideoEncoder.isConfigSupported(cfg); } catch (e) { next(); return; }
+    p.then(function (r) {
+      if (gen !== REC.gen) return;
+      if (!(r && r.supported)) { next(); return; }
+      let enc;
+      try {
+        enc = new VideoEncoder({
+          output: function (chunk, meta) { if (gen === REC.gen) recPush(chunk, meta); },
+          error: function () { if (gen === REC.gen) REC.st = 'fail'; }
+        });
+        enc.configure(r.config || cfg);
+      } catch (e) { next(); return; }
+      REC.enc = enc; REC.st = 'on';
+    }, function () { next(); });
+  };
+  next();
+}
+/* 描いたあとに毎回呼ぶ。ゲーム中(プレイ中・ミスの演出中)だけ、30コマ/秒に間引いて録る */
+function recCapture(now) {
+  if (!CFG.rec || REC.st === 'fail' || !(S.mode === 'play' || S.mode === 'dead')) return;
+  if (!recAvail()) { REC.st = 'fail'; return; }
+  const d = recDims(); if (!d) return;
+  if (REC.st === 'idle' || (REC.st === 'on' && (REC.w !== d.w || REC.h !== d.h))) { recStart(d); return; }
+  if (REC.st !== 'on' || !REC.enc || REC.enc.state !== 'configured') return;
+  const gap = now - REC.last;
+  if (REC.last && gap < 1000 / REC_FPS - 3) return;
+  if (REC.last) REC.ts += Math.min(gap, 100) * 1000; /* ポーズなどで空いた時間は、動画に入れない */
+  REC.last = now;
+  if (REC.enc.encodeQueueSize > 6) return; /* 重いときは、コマを落とす */
+  try {
+    REC.ctx.drawImage(renderer.domElement, 0, 0, REC.w, REC.h);
+    const fr = new VideoFrame(REC.off, { timestamp: Math.round(REC.ts) });
+    const key = REC.sinceKey <= 0; REC.sinceKey = key ? REC_KEYN : REC.sinceKey - 1;
+    REC.enc.encode(fr, { keyFrame: key }); fr.close();
+  } catch (e) { REC.st = 'fail'; }
+}
+/* 手もとの映像をMP4にする(1本のトラックだけ。moovを先頭に置くので、そのまま投稿できる) */
+function mp4Mux(ch, w, h, avcC) {
+  const TS = 90000;
+  const u32 = function (v) { return [(v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255]; };
+  const u16 = function (v) { return [(v >>> 8) & 255, v & 255]; };
+  const str = function (s) { const a = []; for (let i = 0; i < s.length; i++) a.push(s.charCodeAt(i)); return a; };
+  const cat = function (parts) { let n = 0; parts.forEach(function (p) { n += p.length; }); const o = new Uint8Array(n); let k = 0; parts.forEach(function (p) { o.set(p, k); k += p.length; }); return o; };
+  const U = function (x) { return x instanceof Uint8Array ? x : Uint8Array.from(x); };
+  const B = function (type, parts) { const body = cat(parts.map(U)); return cat([Uint8Array.from(u32(body.length + 8).concat(str(type))), body]); };
+  const F = function (type, ver, flags, parts) { return B(type, [[ver, (flags >> 16) & 255, (flags >> 8) & 255, flags & 255]].concat(parts)); };
+  const n = ch.length, dur = [], keys = [], runs = []; let total = 0;
+  for (let i = 0; i < n; i++) {
+    const d = i + 1 < n ? Math.max(1, Math.round((ch[i + 1].t - ch[i].t) * TS / 1e6)) : (dur[i - 1] || Math.round(TS / REC_FPS));
+    dur.push(d); total += d;
+    if (ch[i].k) keys.push(i + 1);
+    if (runs.length && runs[runs.length - 1][1] === d) runs[runs.length - 1][0]++; else runs.push([1, d]);
+  }
+  const matrix = [].concat(u32(0x10000), u32(0), u32(0), u32(0), u32(0x10000), u32(0), u32(0), u32(0), u32(0x40000000));
+  const build = function (off) {
+    const avc1 = B('avc1', [[0, 0, 0, 0, 0, 0], u16(1), u16(0), u16(0), u32(0), u32(0), u32(0), u16(w), u16(h), u32(0x480000), u32(0x480000), u32(0), u16(1),
+      new Array(32).fill(0), u16(0x18), u16(0xffff), B('avcC', [avcC])]);
+    const flat = function (arr) { return [].concat.apply([], arr); };
+    const stbl = B('stbl', [
+      F('stsd', 0, 0, [u32(1), avc1]),
+      F('stts', 0, 0, [u32(runs.length), flat(runs.map(function (r) { return u32(r[0]).concat(u32(r[1])); }))]),
+      F('stss', 0, 0, [u32(keys.length), flat(keys.map(u32))]),
+      F('stsc', 0, 0, [u32(1), u32(1), u32(n), u32(1)]),
+      F('stsz', 0, 0, [u32(0), u32(n), flat(ch.map(function (c) { return u32(c.d.length); }))]),
+      F('stco', 0, 0, [u32(1), u32(off)])
+    ]);
+    const minf = B('minf', [F('vmhd', 0, 1, [u16(0), u16(0), u16(0), u16(0)]), B('dinf', [F('dref', 0, 0, [u32(1), F('url ', 0, 1, [])])]), stbl]);
+    const mdia = B('mdia', [F('mdhd', 0, 0, [u32(0), u32(0), u32(TS), u32(total), u16(0x55c4), u16(0)]),
+      F('hdlr', 0, 0, [u32(0), str('vide'), u32(0), u32(0), u32(0), str('VideoHandler'), [0]]), minf]);
+    const trak = B('trak', [F('tkhd', 0, 7, [u32(0), u32(0), u32(1), u32(0), u32(total), u32(0), u32(0), u16(0), u16(0), u16(0), u16(0), matrix, u32((w * 65536) >>> 0), u32((h * 65536) >>> 0)]), mdia]);
+    return B('moov', [F('mvhd', 0, 0, [u32(0), u32(0), u32(TS), u32(total), u32(0x10000), u16(0x100), u16(0), u32(0), u32(0), matrix,
+      u32(0), u32(0), u32(0), u32(0), u32(0), u32(0), u32(2)]), trak]);
+  };
+  const ftyp = B('ftyp', [str('isom'), u32(512), str('isom'), str('iso2'), str('avc1'), str('mp41')]);
+  let size = 0; ch.forEach(function (c) { size += c.d.length; });
+  const moov = build(ftyp.length + build(0).length + 8);
+  return cat([ftyp, moov, Uint8Array.from(u32(size + 8).concat(str('mdat')))].concat(ch.map(function (c) { return c.d; })));
+}
+/* ゲームオーバーのとき: 手もとの映像から、直前15秒(キーフレームの都合で15〜16秒)のMP4を作る */
+function recFinish() {
+  if (!CFG.rec || REC.st !== 'on' || !REC.enc) return Promise.resolve(null);
+  const gen = REC.gen, w = REC.w, h = REC.h;
+  return REC.enc.flush().then(function () {
+    if (gen !== REC.gen || !REC.desc || REC.chunks.length < 2) return null;
+    const ch = REC.chunks, end = ch[ch.length - 1].t; let s = -1;
+    for (let i = ch.length - 1; i >= 0; i--) if (ch[i].k && ch[i].t <= end - REC_SEC * 1e6) { s = i; break; }
+    if (s < 0) s = ch.findIndex(function (c) { return c.k; });
+    if (s < 0) return null;
+    const part = ch.slice(s), sec = (part[part.length - 1].t - part[0].t) / 1e6;
+    if (sec < 1) return null;
+    return { blob: new Blob([mp4Mux(part, w, h, REC.desc)], { type: 'video/mp4' }), sec: Math.round(sec) };
+  }).catch(function () { return null; });
+}
+let SHARE_VID = null, VID_WAIT = false, VID_GEN = 0; /* SHARE_VID = { blob, url, file, name, sec } */
+function vidCanShare() { try { return !!(SHARE_VID && SHARE_VID.file && navigator.share && navigator.canShare && navigator.canShare({ files: [SHARE_VID.file] })); } catch (e) { return false; } }
+function renderVidBox() {
+  const el = $('vidBox'); if (!el) return;
+  if (SHARE_VID) {
+    el.hidden = false;
+    el.innerHTML = '<p class="small">' + esc(T('直前{n}びょうのプレイ動画', { n: SHARE_VID.sec })) + '</p><div class="xprev"><video id="vidPv" src="' + esc(SHARE_VID.url) + '" muted loop playsinline autoplay controls></video><div class="btns">' +
+      (vidCanShare() ? '<button class="btn sns x" data-act="vidshare">' + T('スマホで動画つきシェア') + '</button>' : '') +
+      '<a class="btn sns" data-act="vidx" href="' + esc(xUrl()) + '" target="_blank" rel="noopener">' + T('動画を保存して Xを開く') + '</a>' +
+      '<button class="btn sns" data-act="vidsave">' + T('動画を保存') + '</button>' +
+      '<p class="small" id="vidMsg">' + esc(T('Xには、動画か画像のどちらか1つだけ付けられます。')) + '</p></div></div>';
+    const pv = $('vidPv'); if (pv) { try { const p = pv.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+  } else if (VID_WAIT) { el.hidden = false; el.innerHTML = '<p class="small">' + esc(T('動画をじゅんびしています…')) + '</p>'; }
+  else { el.hidden = true; el.innerHTML = ''; }
+}
+function recPrepare() {
+  if (SHARE_VID) { try { URL.revokeObjectURL(SHARE_VID.url); } catch (e) {} SHARE_VID = null; }
+  const gen = ++VID_GEN;
+  VID_WAIT = !!(CFG.rec && REC.st === 'on');
+  renderVidBox();
+  if (!VID_WAIT) return;
+  recFinish().then(function (v) {
+    if (gen !== VID_GEN) return;
+    VID_WAIT = false;
+    if (v && S.mode === 'over') {
+      v.url = URL.createObjectURL(v.blob); v.name = 'povjump-stage' + S.stage + '.mp4';
+      try { v.file = new File([v.blob], v.name, { type: 'video/mp4' }); } catch (e) { v.file = null; }
+      SHARE_VID = v; track('video_ready', { sec: v.sec, kb: Math.round(v.blob.size / 1024) });
+    }
+    renderVidBox();
+  });
+}
+function vidSay(t) { const m = $('vidMsg'); if (m) m.textContent = t; }
+function vidSave() {
+  if (!SHARE_VID) return;
+  try { const a = document.createElement('a'); a.href = SHARE_VID.url; a.download = SHARE_VID.name; document.body.appendChild(a); a.click(); a.remove(); vidSay(T('動画を保存しました。Xの投稿画面で、保存した動画を追加してください。')); }
+  catch (e) { vidSay(T('この画面では動画の共有ができません。「動画を保存」を使ってください。')); }
+}
+function vidShare() {
+  if (!vidCanShare()) { vidSay(T('この画面では動画の共有ができません。「動画を保存」を使ってください。')); return; }
+  try { navigator.share({ title: 'POV Jump', text: shareText(), url: stageLink(), files: [SHARE_VID.file] }).then(function () { vidSay(T('シェアしました。')); }, function () {}); }
+  catch (e) { vidSay(T('この画面では動画の共有ができません。「動画を保存」を使ってください。')); }
+}
+
 /* ================= ゴースト(自己ベストの走り) ================= */
 function ghostKey() { return 'pyonran-ghost-g' + GEN_VER + '-' + S.play + '-' + S.stage + '-' + (S.seed >>> 0).toString(36); }
 function loadGhost() {
@@ -6842,6 +7076,66 @@ function readHash() {
   return null;
 }
 let INVITE = readHash();
+
+/* ================= 途中セーブ(「つづきから」はそのステージの最初から) =================
+   ステージのはじめ・クリア・ミス・ページを離れるときに、ブラウザの中に残す。ゲームオーバーで消す。
+   ステージは「たね(seed)+ステージ番号」で毎回おなじものができるので、数字だけ残せばよい。 */
+const SAVE_KEY = 'povjump-run', SAVE_V = 1;
+const SAVE_POW = { fire: 1, ice: 1, whip: 1, thunder: 1 };
+let RUN = null, confirmNew = false;
+function hasKey(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+function runInt(v, lo, hi) { v = +v; return isFinite(v) && v >= lo && v <= hi ? Math.floor(v) : null; }
+function loadRun() {
+  RUN = null;
+  try {
+    const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (!o || o.sv !== SAVE_V || o.play !== 'normal') return;
+    const stage = runInt(o.stage, 2, 9999), seed = runInt(o.seed, 0, 4294967295), lives = runInt(o.lives, 1, 999),
+      score = runInt(o.score, 0, 999999999), coins = runInt(o.coins, 0, 999999999);
+    if (stage === null || seed === null || lives === null || score === null || coins === null) return;
+    let st = runInt(o.st, 0, 2); if (st === null) st = 0;
+    let pw = typeof o.pw === 'string' && hasKey(SAVE_POW, o.pw) ? o.pw : null;
+    if (st < 2) pw = null; else if (!pw) st = 1;
+    const stock = typeof o.stock === 'string' && hasKey(STOCK_OK, o.stock) ? o.stock : null;
+    RUN = { stage: stage, seed: seed, lives: lives, score: score, coins: coins, st: st, pw: pw, bar: o.bar ? 1 : 0, stock: stock };
+  } catch (e) { RUN = null; }
+}
+function saveRun(stage) {
+  if (S.play !== 'normal') return;
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ sv: SAVE_V, ver: GAME_VER, gen: GEN_VER, play: 'normal', stage: stage || S.stage, seed: S.seed >>> 0,
+      lives: Math.max(1, S.lives), score: S.score, coins: S.coins, st: P.state, pw: P.power || null, bar: P.barrier ? 1 : 0, stock: P.stock || null, at: Date.now() }));
+  } catch (e) {}
+}
+function clearRun() { RUN = null; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+/* ミス・ページを離れるとき: ライフだけ更新する。ふやす方向には変えない(1UPをくり返して稼ぐのをふせぐ) */
+function saveLives() {
+  if (S.play !== 'normal') return;
+  if (S.lives <= 0) { clearRun(); return; }
+  try {
+    const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (!o || o.sv !== SAVE_V || o.seed !== (S.seed >>> 0)) return;
+    if (S.lives < o.lives) { o.lives = S.lives; localStorage.setItem(SAVE_KEY, JSON.stringify(o)); }
+  } catch (e) {}
+}
+function leaveSave() { if (S.mode === 'play' || S.mode === 'pause' || S.mode === 'dead') saveLives(); }
+document.addEventListener('visibilitychange', function () { if (document.hidden) leaveSave(); });
+window.addEventListener('pagehide', leaveSave);
+function continueRun() {
+  if (!RUN) return;
+  const r = RUN;
+  S.play = 'normal'; S.lives = r.lives; S.score = r.score; S.coins = r.coins; S.stage = r.stage; S.seed = r.seed;
+  P.stock = r.stock; P.state = r.st; P.power = r.pw; P.barrier = !!r.bar;
+  track('game_continue', { stage: r.stage, ver: GAME_VER, lang: LANG });
+  recStop();
+  startStage(true);
+}
+function titleStartBtns() {
+  if (!RUN) return '<button class="btn" data-act="start">' + T('はじめる') + '</button>';
+  return '<button class="btn" data-act="continue">' + T('つづきから（ステージ {n}）', { n: RUN.stage }) +
+      '<span class="bsub">' + T('ライフ {l} ・ スコア {s}', { l: RUN.lives, s: pad(RUN.score, 6) }) + '</span></button>' +
+    '<button class="btn sub" data-act="start">' + T(confirmNew ? 'ほんとうに はじめから？ セーブがきえます' : 'はじめから') + '</button>';
+}
 
 /* ================= overlay / flow ================= */
 function keysHtml() {
@@ -6892,7 +7186,7 @@ const TPL = {
     return '<div class="card">' + langSelect() + '<p class="eyebrow">' + T('FPS ジャンプアクション') + '</p><h1 class="logo"><img src="tex/logo.webp" alt="POV Jump" onerror="this.parentNode.classList.remove(\'logo\');this.parentNode.textContent=\'POV Jump\'"></h1>' +
       '<p class="lead">' + T('一人称視点で走って、跳んで、ゴールをめざします。ステージは毎回自動で作られ、5ステージごとに、{w}と景色が変わります。', { w: worlds }) + '</p>' +
       inv + updateNote() + helpHtml() +
-      '<div class="btns"><button class="btn" data-act="start">' + T('はじめる') + '</button><button class="btn sub" data-act="daily">' + T('きょうのステージ') + '</button><button class="btn sub" data-act="settings">' + T('せってい') + '</button></div>' +
+      '<div class="btns">' + titleStartBtns() + '<button class="btn sub" data-act="daily">' + T('きょうのステージ') + '</button><button class="btn sub" data-act="settings">' + T('せってい') + '</button></div>' +
       '<p class="small">' + (MODELS.ready ? '' : T(MODELS.failed ? 'キャラクターのモデルを読みこめなかったため、かんたんな形で表示します。' : 'キャラクターを読みこみ中…') + ' ') + T(IS.touch ? '横向きにすると遊びやすくなります。' : 'Enter キーでも始められます。') + ' ' +
       T('バージョン {v}（{d} 更新）', { v: GAME_VER, d: fmtDate(GAME_DATE) }) + ' ／ ' + T('ハイスコア {s}', { s: pad(S.best, 6) }) + ' ／ ' + T('とうたつステージ {n}', { n: S.bestStage }) + ' ／ ' + T('きょうのステージは {n}（{t}）', { n: td.stage, t: thName(THEMES[themeOf(td.stage, td.seed)]) }) + '</p></div>';
   },
@@ -6906,12 +7200,13 @@ const TPL = {
       '<div class="srow"><label for="sVol">' + T('おんりょう') + '</label><input type="range" id="sVol" min="0" max="100" step="1" value="' + CFG.vol + '"><b id="sVolV">' + CFG.vol + '</b></div>' +
       '<div class="srow"><label for="sMute">' + T('ミュート') + '</label><input type="checkbox" id="sMute"' + (S.muted ? ' checked' : '') + '></div>' +
       '<div class="srow"><label for="sSens">' + T('視点のかんど') + '</label><input type="range" id="sSens" min="0.3" max="3" step="0.05" value="' + CFG.sens + '"><b id="sSensV">' + CFG.sens.toFixed(2) + '</b></div>' +
-      '</div><p class="small">' + T('視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。') + '</p>' +
+      '<div class="srow"><label for="sRec">' + T('ゲームオーバーの動画を録画する') + '</label><input type="checkbox" id="sRec"' + (CFG.rec ? ' checked' : '') + '></div>' +
+      '</div><p class="small">' + T('視点のかんどは、マウス・画面をなぞる操作・矢印キーに効きます。数字が大きいほど、すばやく向きが変わります。') + ' ' + T('録画は、スマホが重いときに切ると軽くなります。') + '</p>' +
       '<button class="btn" data-act="back">' + T('もどる') + '</button></div>';
   },
   over: function () {
     return '<div class="card"><h2>' + T('ゲームオーバー') + '</h2><div class="result"><span>' + T('とうたつステージ') + '</span><b>' + S.stage + '</b><span>' + T('スコア') + '</span><b>' + pad(S.score, 6) + '</b><span>' + T('コイン') + '</span><b>' + pad(S.coins, 2) + '</b></div>' +
-      '<div class="btns"><button class="btn" data-act="restart">' + T(S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div><p class="small">' + T('R キーでも再挑戦できます。') + '</p>' + shareBlock() + '</div>';
+      '<div class="btns"><button class="btn" data-act="restart">' + T(S.play === 'normal' ? 'ステージ1から' : 'タイトルへ') + '</button></div><p class="small">' + T('R キーでも再挑戦できます。') + '</p>' + '<div id="vidBox" class="vidbox" hidden></div>' + shareBlock() + '</div>';
   },
   clear: function () {
     const n = S.stage + 1, note = stageNote(n), solo = S.play !== 'normal';
@@ -6933,7 +7228,7 @@ function showOverlay(kind) {
   cross.classList.remove('on');
   const b = ov.querySelector('.btn'); if (b) { try { b.focus({ preventScroll: true }); } catch (e) {} }
   if (kind === 'clear') { prepareShareImage(); track('stage_clear', { mode: S.play, stage: S.stage, score: S.score, reds: S.reds, ver: GAME_VER }); }
-  if (kind === 'over') prepareShareImage();
+  if (kind === 'over') { prepareShareImage(); recPrepare(); }
   if (kind === 'over') track('game_over', { mode: S.play, stage: S.stage, score: S.score, ver: GAME_VER });
 }
 function hideOverlay() { ov.hidden = true; ov.innerHTML = ''; hud.hidden = false; cross.classList.add('on'); try { canvas.focus({ preventScroll: true }); } catch (e) {} }
@@ -6956,18 +7251,50 @@ function startStage(keep) {
   crowT = 10; meteorT = 6;
   buildWorld(); resetPlayer(0, keep);
   S.mode = 'play'; hideOverlay();
+  if (S.play === 'normal' && S.stage >= 2) saveRun();
   toast(T(S.play === 'daily' ? 'きょうのステージ {n}「{t}」スタート!' : 'ステージ {n}「{t}」スタート!', { n: S.stage, t: thName(TH) }) + (LV.bossKind ? ' ' + T(LV.bossKind === 'boss' ? 'ボスせん' : 'ちゅうボスせん') : ''), 2200);
   if (S.stage === 1 && S.play === 'normal') setTimeout(function () { if (S.mode === 'play' && S.stage === 1 && (IS.touch || !document.pointerLockElement)) toast(T(IS.touch ? '画面をなぞって見まわせます' : '矢印キーかドラッグで見まわせます'), 2600); }, 2400);
 }
 function newGame(play, stage, seed) {
   S.play = play || 'normal';
   S.lives = 3; S.score = 0; S.coins = 0; P.stock = null; S.stage = stage || 1; S.seed = seed === undefined ? (Math.random() * 1e9) >>> 0 : seed;
+  if (S.play === 'normal') clearRun();
+  confirmNew = false; recStop();
   track('game_start', { mode: S.play, stage: S.stage, ver: GAME_VER, lang: LANG });
   startStage(false);
 }
 function nextStage() { S.stage++; startStage(true); }
+/* ボス戦の最中か(ボスが生きていて、戦いが始まっている) */
+function inBossFight() { return !!(S.fightOn && !S.bossDone && S.boss && !S.boss.dead && enemies.indexOf(S.boss) >= 0); }
+/* ボス戦の入口の手前にある、パワーのブロック(ボス戦が始まると入口がふさがれて、取りに戻れない) */
+function arenaPowerBlocks() {
+  if (!LV.arena) return [];
+  return blocks.filter(function (b) { return b.kind === 'item' && b.y0 === 2 && Math.abs(w2c(b.x, b.z).u - (LV.arena.a - 7)) < 0.8; });
+}
+/* ボス戦でミスしたとき: ボスは作りなおさず、ボスの状態(HP・しかけの進み)はそのまま。プレイヤーだけ入口にもどす */
+function respawnInFight() {
+  resetPlayer(S.cpU, false);
+  for (let i = shots.length - 1; i >= 0; i--) { worldGroup.remove(shots[i].mesh); shots.splice(i, 1); }
+  for (let i = fireballs.length - 1; i >= 0; i--) { const f = fireballs[i]; worldGroup.remove(f.mesh); disposeBall(f.mesh); fireballs.splice(i, 1); }
+  P.invuln = 2.5;
+  /* 入口がふさがれていて、手前のパワーのブロックには もどれない。ミスでパワーが消えるので、ブロックと同じパワーを1つ返す */
+  const blk = arenaPowerBlocks();
+  giveItem(blk.length ? blk[0].item : 'fire');
+  S.mode = 'play'; hideOverlay();
+  toast(T('ボス戦の とちゅうから やりなおし!'), 2000);
+}
+/* ボス戦に入るとき、ザコ敵は ぜんぶ消す(ボスと、ボス戦のしかけだけにする) */
+function clearZako() {
+  enemies.forEach(function (e) {
+    if (e.kind === 'boss' || e.kind === 'mini' || e.bid || e.dead || e.remove) return;
+    e.remove = true;
+    burst(e.x, e.y + e.h * 0.5, e.z, 0xe8e0c8, 6, 3, 0.16, 0.4, 6);
+  });
+  for (let i = shots.length - 1; i >= 0; i--) { worldGroup.remove(shots[i].mesh); shots.splice(i, 1); }
+}
 function respawn() {
   S.timeF = LV.time; HC.clearShown = false;
+  if (inBossFight()) { respawnInFight(); return; }
   buildWorld(); resetPlayer(S.cpU, false);
   S.mode = 'play'; hideOverlay();
   toast(T(S.cpU > 0 ? 'チェックポイントからやりなおし' : 'もういちど!'), 1800);
@@ -6978,7 +7305,7 @@ function lockPointer() {
 }
 function pauseGame() { if (S.mode !== 'play') return; S.mode = 'pause'; releaseTouch(); showOverlay('pause'); }
 function resumeGame() { if (S.mode !== 'pause') return; S.mode = 'play'; hideOverlay(); }
-function toTitle() { S.mode = 'title'; S.play = 'normal'; showOverlay('title'); }
+function toTitle() { S.mode = 'title'; S.play = 'normal'; confirmNew = false; loadRun(); showOverlay('title'); }
 let inSet = false;
 function openSettings() { if (S.mode !== 'title' && S.mode !== 'pause') return; inSet = true; showOverlay('settings'); }
 function closeSettings() { if (!inSet) return; inSet = false; saveCfg(); showOverlay(S.mode === 'pause' ? 'pause' : 'title'); }
@@ -6988,7 +7315,8 @@ function act(a, el) {
   if (a === 'settings') { openSettings(); return; }
   if (a === 'back') { closeSettings(); return; }
   if (inSet) return;
-  if (a === 'start' && S.mode === 'title') { lockPointer(); newGame('normal'); }
+  if (a === 'start' && S.mode === 'title') { if (RUN && !confirmNew) { confirmNew = true; showOverlay('title'); return; } confirmNew = false; lockPointer(); newGame('normal'); }
+  else if (a === 'continue' && S.mode === 'title' && RUN) { lockPointer(); continueRun(); }
   else if (a === 'daily' && S.mode === 'title') { const td = todayInfo(); lockPointer(); newGame('daily', td.stage, td.seed); }
   else if (a === 'challenge' && S.mode === 'title' && INVITE) { lockPointer(); newGame('challenge', INVITE.stage, INVITE.seed); }
   else if (a === 'resume' && S.mode === 'pause') { lockPointer(); resumeGame(); }
@@ -7005,6 +7333,9 @@ function act(a, el) {
     LAST_CARD = url;
   } else if (a === 'savecard' && LAST_CARD) saveCard(el);
   else if (a === 'xshare') { track('share', { method: 'x', stage: S.stage }); xShare(); }
+  else if (a === 'vidshare') { track('share', { method: 'video_native', stage: S.stage }); vidShare(); }
+  else if (a === 'vidsave') { track('share', { method: 'video_save', stage: S.stage }); vidSave(); }
+  else if (a === 'vidx') { track('share', { method: 'video_x', stage: S.stage }); vidSave(); }
   else if (a === 'savex' && SHARE_IMG) { track('share', { method: 'save_image', stage: S.stage }); LAST_CARD = SHARE_IMG.url; saveCard(el, 'shareMsg'); }
 }
 /* 画像の保存: Claude の画面では downloads 機能、ふつうのサイトではダウンロードリンク */
@@ -7038,6 +7369,8 @@ ov.addEventListener('input', function (e) {
     S.muted = e.target.checked; initAudio(); applyVolume(); saveCfg();
   } else if (id === 'sSens') {
     CFG.sens = +e.target.value; $('sSensV').textContent = CFG.sens.toFixed(2);
+  } else if (id === 'sRec') {
+    CFG.rec = e.target.checked; saveCfg(); if (!CFG.rec) recStop();
   }
 });
 ov.addEventListener('change', function (e) {
@@ -7058,7 +7391,7 @@ window.addEventListener('keydown', function (e) {
     if (c === 'KeyX' && !e.repeat && S.mode === 'play') useStock();
     if (c === 'KeyC' && !e.repeat && S.mode === 'play') useSuper();
     if (c === 'Escape' || c === 'KeyP') { if (S.mode === 'play') pauseGame(); else if (S.mode === 'pause') act('resume'); }
-    if (c === 'Enter') { e.preventDefault(); if (S.mode === 'title') act(INVITE && INVITE.kind === 'challenge' ? 'challenge' : 'start'); else if (S.mode === 'pause') act('resume'); else if (S.mode === 'clear' && HC.clearShown) act(S.play === 'normal' ? 'next' : 'title'); }
+    if (c === 'Enter') { e.preventDefault(); if (S.mode === 'title') act(INVITE && INVITE.kind === 'challenge' ? 'challenge' : RUN ? 'continue' : 'start'); else if (S.mode === 'pause') act('resume'); else if (S.mode === 'clear' && HC.clearShown) act(S.play === 'normal' ? 'next' : 'title'); }
     if (c === 'KeyR' && (S.mode === 'over' || S.mode === 'clear' || S.mode === 'pause')) act('restart');
     if (c === 'KeyM') { S.muted = !S.muted; applyVolume(); saveCfg(); if (S.mode === 'play') toast(T(S.muted ? 'おと: オフ' : 'おと: オン'), 900); }
   }
@@ -7169,7 +7502,7 @@ function update(dt) {
     P.vy -= 28 * dt; P.y += P.vy * dt;
     updateBlocks(dt);
     if (P.deadT <= 0) {
-      if (S.lives > 0) respawn(); else { S.mode = 'over'; showOverlay('over'); }
+      if (S.lives > 0) respawn(); else { S.mode = 'over'; clearRun(); showOverlay('over'); }
     }
   } else if (S.mode === 'clear') {
     S.clearT += dt;
@@ -7187,6 +7520,7 @@ function boot() {
 }
 try { setTouch(!!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)); } catch (e) {}
 applyStatic();
+loadRun();
 boot();
 loadModels().then(function () { if (S.mode === 'title') boot(); });
 
@@ -7217,6 +7551,7 @@ function frame(now) {
   applyCamera(dt, clockT); skyFollow();
   if (!hud.hidden) updateHud();
   renderer.render(scene, camera);
+  recCapture(now);
 }
 requestAnimationFrame(frame);
 })();
