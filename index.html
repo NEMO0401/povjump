@@ -667,6 +667,13 @@ const DICT = {
 };
 /* 4.9 で足した文 */
 Object.assign(DICT.en, {
+  'パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)': 'Fire Plants now aim at where you were 1.5 seconds ago, not where you are now',
+  'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています': 'Crows are slower, stay on the attack longer, and are a bit bigger, so they are easier to hit',
+  'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます': 'UFOs no longer hurt you. They only lift you into the air and hold you still for about 3 seconds. They fly lower now, so you can stomp them',
+  'サンダーは、ねらった先に空中の敵がいると、地面に下りずに、ねらった方向へ直進します': 'Thunder now flies straight where you aim when an airborne enemy is in your line of fire, instead of dropping to the ground',
+  '雷を落とす雲は、ゆっくり動くようになり、落とす前の予告も長くなりました。予告のあいだは、その場でとまります': 'Thunder clouds move slower, give a longer warning before striking, and stay still during the warning',
+});
+Object.assign(DICT.en, {
   'つづきから（ステージ {n}）': 'Continue (Stage {n})', 'ライフ {l} ・ スコア {s}': 'Lives {l} · Score {s}', 'はじめから': 'New game',
   'ほんとうに はじめから？ セーブがきえます': 'Start over? Your saved run will be erased',
   'ボス戦の とちゅうから やりなおし!': 'Back in the boss fight!',
@@ -2712,16 +2719,18 @@ function updatePlayer(dt) {
   P.yaw += ((keys.ArrowLeft ? 1 : 0) - (keys.ArrowRight ? 1 : 0)) * 2.4 * CFG.sens * dt;
   P.pitch = clamp(P.pitch + ((keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0)) * 1.8 * CFG.sens * dt, -1.3, 1.3);
   const stunned = P.stun > 0;
+  const held = P.held > 0;
   if (stunned) { P.stun = Math.max(0, P.stun - dt); jumpBuf = 0; }
+  if (held) { P.held = Math.max(0, P.held - dt); jumpBuf = 0; }
   ['star', 'boots', 'cape', 'magnet', 'sticky'].forEach(function (k) { if (P[k] > 0) { P[k] = Math.max(0, P[k] - dt); if (P[k] === 0 && k !== 'sticky') toast(T({ star: 'むてきがきれた', boots: 'ダブルブーツがきれた', cape: 'マントがきれた', magnet: 'じしゃくがきれた' }[k]), 1000); } });
   if (P.mini > 0) { P.mini = Math.max(0, P.mini - dt); if (P.mini === 0) { setSize(); if (pointSolidBody()) { P.mini = 0.5; setSize(); } else toast(T('もとの大きさにもどった'), 1000); } }
 
   const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
   const rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
   const kmv = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
-  let mv = stunned ? 0 : clamp(kmv + joy.y, -1, 1);
-  const st = stunned ? 0 : joy.x;
-  const dash = !stunned && ((!!keys.KeyA && kmv !== 0) || (joy.dash && (mv !== 0 || st !== 0)));
+  let mv = (stunned || held) ? 0 : clamp(kmv + joy.y, -1, 1);
+  const st = (stunned || held) ? 0 : joy.x;
+  const dash = !stunned && !held && ((!!keys.KeyA && kmv !== 0) || (joy.dash && (mv !== 0 || st !== 0)));
   /* 水・毒 */
   const wz = zoneAt('water', P.x, P.z);
   const wasWater = P.inWater; P.inWater = !!wz && P.y < 0.4;
@@ -2768,7 +2777,7 @@ function updatePlayer(dt) {
   P.coyote = P.onGround ? 0.09 : P.coyote - dt;
   jumpBuf -= dt;
   const jv = JUMP_V * JUMPK * (P.inWater ? 0.85 : 1) * (P.inSand ? 0.78 : 1) * (P.sticky > 0 ? 0.7 : 1) * (P.mini > 0 ? 1.08 : 1);
-  if (jumpBuf > 0 && !stunned) {
+  if (jumpBuf > 0 && !stunned && !held) {
     if (P.coyote > 0) {
       P.vy = jv + (Math.hypot(P.vx, P.vz) > 7 ? 0.8 : 0);
       P.jumping = true; jumpBuf = 0; P.coyote = 0; P.onGround = false; sfx('jump');
@@ -3338,13 +3347,27 @@ function powHittable(e) {
 
 /* ---------- 雷の玉: 最初はゆっくり、だんだん速くなる。まっすぐ飛び、地面すれすれをすべる ---------- */
 const THUNDER_V0 = 4.2, THUNDER_VMAX = 25, THUNDER_ACC = 24;
+/* ねらった先(まっすぐの線の上)に、空中の敵がいるか。いれば、地面へ下りずに、ねらった方向へ直進する */
+function thunderAimsAtAir(ox, oy, oz, dx, dy, dz) {
+  const base = P.onGround ? P.y : (P.gy || 0);
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i]; if (!powHittable(e)) continue;
+    if ((e.kind === 'mini' || e.kind === 'boss') && !S.fightOn) continue;
+    const cy = e.y + e.h * 0.5; if (cy < base + 1.0) continue;
+    const vx = e.x - ox, vy = cy - oy, vz = e.z - oz, along = vx * dx + vy * dy + vz * dz;
+    if (along < 0.5 || along > 40) continue;
+    if (Math.hypot(vx - dx * along, vy - dy * along, vz - dz * along) < e.hw + e.h * 0.5 + 0.9) return true;
+  }
+  return false;
+}
 function shootThunder() {
   if (P.fireCd > 0 || fireballs.length >= 3 || S.mode !== 'play' || P.stun > 0) return;
   P.fireCd = 0.3; P.kick = 1;
   const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), cp = Math.cos(P.pitch), sp = Math.sin(P.pitch);
+  const air = thunderAimsAtAir(P.x, P.y + P.eye - 0.45, P.z, fx * cp, sp, fz * cp);
   const g = makeBall('thunder'); worldGroup.add(g);
   const f = { kind: 'thunder', x: P.x + fx * 0.6, y: P.y + P.eye - 0.45, z: P.z + fz * 0.6, vx: fx * cp * THUNDER_V0, vz: fz * cp * THUNDER_V0, vy: sp * THUNDER_V0, hw: 0.17, h: 0.34, life: 3.2, mesh: g, onGround: false,
-    hover: Math.abs(P.pitch) < 0.3 ? (P.onGround ? P.y : P.gy || 0) + 0.42 : null };
+    hover: Math.abs(P.pitch) < 0.3 && !air ? (P.onGround ? P.y : P.gy || 0) + 0.42 : null };
   fireballs.push(f); sfx('thunder');
   fxEmit({ tex: 'fx_elec_spark', add: true, x: f.x, y: f.y + 0.1, z: f.z, life: 0.14, s0: 0.9, s1: 0.2, a: 1, ramp: FXR.white });
 }
@@ -4059,6 +4082,8 @@ function mkHinotama() {
 /* ---------- 種類ごとのきまり ---------- */
 /* stomp: 踏んだとき(kill=たおす / shell=丸まる / wing=羽が取れる / break=くずれる / false=踏めない) */
 /* fire: ファイアが当たったとき(kill / immune=効かない / seg=1段くずす / break) */
+const RAINCLOUD_SP = 1.7, RAINCLOUD_WARN = 1.5; /* 雷雲の速さ(むかしは3)・落雷の予告の長さ(むかしは0.8秒) */
+const UFO_Y = 2.9; /* UFOの高さ(むかしは4.6。ジャンプでふめる) */
 const DEF = {
   purl: { hw: 0.4, h: 0.8, sp: 1.7, stomp: 'squish', home: true, make: mkPurl },
   gdango: { hw: 0.36, h: 0.7, sp: 1.5, stomp: 'shell', make: function () { return mkDango(false); } },
@@ -4086,7 +4111,7 @@ const DEF = {
   raincloud: { hw: 0.6, h: 0.7, stomp: 'kill', pts: 500, fly: true, make: mkRaincloud },
   hinotama: { hw: 0.32, h: 0.64, stomp: false, fire: 'immune', fly: true, make: mkHinotama },
   mimic: { hw: 0.42, h: 0.85, sp: 3.2, stomp: 'kill', pts: 400, home: true, make: mkMimic },
-  crow: { hw: 0.4, h: 0.5, stomp: 'kill', pts: 300, fly: true, make: mkCrow },
+  crow: { hw: 0.55, h: 0.7, stomp: 'kill', pts: 300, fly: true, make: mkCrow },
   byun: { hw: 0.42, h: 0.6, stomp: 'kill', pts: 200, fly: true, make: function () { return mkByun(false); } },
   byunH: { hw: 0.42, h: 0.6, stomp: 'kill', pts: 300, fly: true, make: function () { return mkByun(true); } },
   mini: { hw: 0.65, h: 1.5, make: function (e) { return e.bid ? BOSS_IMPL[e.bid].make(e) : mkDragon(false); } },
@@ -4121,8 +4146,8 @@ function spawnEnemy(kind, x, z, ex) {
   else if (kind === 'jfish') { e.mode = 'hide'; e.harmless = true; e.pt = 0.8 + Math.random() * 2; e.y = ex.pit ? -2 : -0.2; }
   else if (kind === 'kurage') { e.y0 = 0.9 + Math.random(); e.y = e.y0; }
   else if (kind === 'ika') { e.mode = 'hide'; e.pt = 1 + Math.random() * 2; e.harmless = true; e.y = -0.6; }
-  else if (kind === 'ufo') { e.y = 4.6; }
-  else if (kind === 'raincloud') { e.y = 5.2; e.cd = 2.5; }
+  else if (kind === 'ufo') { e.y = UFO_Y; }
+  else if (kind === 'raincloud') { e.y = 5.2; e.cd = 3.5; }
   else if (kind === 'hinotama') { e.mode = 'hide'; e.harmless = true; e.y = -2.6; e.pt = 0.6 + Math.random() * 2; e.hy = -2.6; }
   else if (kind === 'mimic') { e.mode = 'coin'; e.harmless = true; e.y = 0.6; }
   else if (kind === 'goronbo') { e.mode = 'idle'; const s = segAt(e.u); e.dx = -s.fx; e.dz = -s.fz; }
@@ -4417,11 +4442,12 @@ function stepCrawler(e, dt) {
   e.x = w[0] + s.fx * nu * e.h * 0.5; e.z = w[1] + s.fz * nu * e.h * 0.5; e.y = cy + ny * e.h * 0.5 - e.h * 0.5;
   e.cseg = s;
 }
+const CROW_V = 6.5; /* カラスの速さ(むかしは11) */
 function crowSpawn() {
   const s = segAt(playerU());
   const bx = P.x + Math.sin(P.yaw) * 14, bz = P.z + Math.cos(P.yaw) * 14;
   const e = spawnEnemy('crow', bx, bz, { u: playerU() });
-  e.active = true; e.y = P.y + 4; e.mode = 'warn'; e.pt = 1.3; e.harmless = true;
+  e.active = true; e.y = P.y + 4; e.mode = 'warn'; e.pt = 1.7; e.harmless = true;
   sfx('warn'); void s;
 }
 function stepEnemy(e, dt) {
@@ -4491,7 +4517,7 @@ function stepEnemy(e, dt) {
       else if (e.ph === 'wind') {
         e.pt -= dt; fxCharge(e, e.x + e.dx * 0.45, e.y + 1.0, e.z + e.dz * 0.45, 'fire', 0.45, dt);
         if (e.pt <= 0) {
-          enemyShot(e.x + e.dx * 0.45, e.y + 1.0, e.z + e.dz * 0.45, P.x, P.y + P.h * 0.55, P.z, 6.5 + 2.5 * Math.min(1, S.stage / 15), 0.22);
+          const pp = pastPos(1.5); enemyShot(e.x + e.dx * 0.45, e.y + 1.0, e.z + e.dz * 0.45, pp.x, pp.y + P.h * 0.55, pp.z, 6.5 + 2.5 * Math.min(1, S.stage / 15), 0.22);
           e.ph = 'idle'; e.cd = 2.6 - 0.8 * Math.min(1, S.stage / 15);
         }
       }
@@ -4577,24 +4603,30 @@ function stepEnemy(e, dt) {
       return;
     }
     case 'ufo': {
+      /* ダメージはない。体を空中に吸い上げて、しばらく動けなくするだけ(うえに向けてうつか、上からふんで倒せる) */
       const pc = w2c(P.x, P.z), s = segAt(pc.u), tw = c2w(pc.u + 4 + Math.sin(e.t * 0.6) * 3, clamp(pc.x + Math.sin(e.t * 0.9) * 2, -6, 6), s);
       if (e.mode !== 'beam') { e.x = approach(e.x, tw[0], 2.6 * dt); e.z = approach(e.z, tw[1], 2.6 * dt); }
-      e.y = 4.6 + Math.sin(e.t * 2) * 0.2;
+      e.y = UFO_Y + Math.sin(e.t * 2) * 0.2;
       const hd = Math.hypot(P.x - e.x, P.z - e.z);
-      e.mode = hd < 1.5 && P.y < e.y ? 'beam' : 'hover';
-      if (e.mode === 'beam' && S.mode === 'play' && P.star <= 0) {
-        P.vy = Math.max(P.vy, 3.2); P.onGround = false;
-        if (P.y + P.h > e.y - 0.4) { if (hurt()) { knockFrom(e, 6); P.vy = -4; } }
+      e.cd = Math.max(0, e.cd - dt);
+      if (e.mode === 'beam') {
+        e.pt -= dt;
+        if (e.pt <= 0 || S.mode !== 'play' || hd > 2.4 || P.y >= e.y) { e.mode = 'hover'; e.cd = 2.5; }
+      } else if (e.cd <= 0 && hd < 1.5 && P.y < e.y && S.mode === 'play' && P.star <= 0) { e.mode = 'beam'; e.pt = 3; }
+      if (e.mode === 'beam') {
+        const hold = e.y - 0.5 - P.h;
+        P.held = 0.15; P.onGround = false; P.dashT = 0; P.vx *= Math.max(0, 1 - 8 * dt); P.vz *= Math.max(0, 1 - 8 * dt);
+        if (P.y < hold) P.vy = Math.max(P.vy, 5); else { P.y = hold; P.vy = 0; }
       }
       return;
     }
     case 'raincloud': {
       const pc = w2c(P.x, P.z), s = segAt(pc.u), tw = c2w(pc.u + 2, clamp(pc.x, -6, 6), s);
-      if (e.mode !== 'strike') { e.x = approach(e.x, tw[0], 3 * dt); e.z = approach(e.z, tw[1], 3 * dt); }
+      if (e.mode !== 'strike' && e.mode !== 'tele') { e.x = approach(e.x, tw[0], RAINCLOUD_SP * dt); e.z = approach(e.z, tw[1], RAINCLOUD_SP * dt); } /* 予告中は、その場でとまる */
       e.cd -= dt;
-      if (e.cd <= 0 && e.mode !== 'tele' && e.mode !== 'strike') { e.mode = 'tele'; e.pt = 0.8; shockwave(e.x, e.z, 1.4, 0xfff27a); sfx('warn'); }
+      if (e.cd <= 0 && e.mode !== 'tele' && e.mode !== 'strike') { e.mode = 'tele'; e.pt = RAINCLOUD_WARN; shockwave(e.x, e.z, 1.4, 0xfff27a); sfx('warn'); }
       if (e.mode === 'tele') { e.pt -= dt; fxBoltCharge(e, dt); if (e.pt <= 0) { e.mode = 'strike'; e.pt = 0.25; sfx('zap'); S.shake = 0.2; fxLightning(e.x, e.y - 0.3, e.z); if (S.mode === 'play' && Math.hypot(P.x - e.x, P.z - e.z) < 1.4 && P.y < e.y) hurt(); } }
-      else if (e.mode === 'strike') { e.pt -= dt; if (e.pt <= 0) { e.mode = 'hover'; e.cd = 2.6 + Math.random(); } }
+      else if (e.mode === 'strike') { e.pt -= dt; if (e.pt <= 0) { e.mode = 'hover'; e.cd = 3.6 + Math.random(); } }
       return;
     }
     case 'hinotama': {
@@ -4612,7 +4644,7 @@ function stepEnemy(e, dt) {
     case 'crow': {
       if (e.mode === 'warn') {
         e.pt -= dt; e.x = P.x + Math.sin(P.yaw) * 12; e.z = P.z + Math.cos(P.yaw) * 12; e.y = P.y + 3.5;
-        if (e.pt <= 0) { e.mode = 'swoop'; e.harmless = false; e.pt = 3.5; const ddx = P.x - e.x, ddy = P.y + 0.6 - e.y, ddz = P.z - e.z, dd = Math.hypot(ddx, ddy, ddz) || 1; e.vx = ddx / dd * 11; e.vy = ddy / dd * 11; e.vz = ddz / dd * 11; }
+        if (e.pt <= 0) { e.mode = 'swoop'; e.harmless = false; e.pt = 5; const ddx = P.x - e.x, ddy = P.y + 0.3 - e.y, ddz = P.z - e.z, dd = Math.hypot(ddx, ddy, ddz) || 1; e.vx = ddx / dd * CROW_V; e.vy = ddy / dd * CROW_V; e.vz = ddz / dd * CROW_V; }
         return;
       }
       e.x += e.vx * dt; e.y += e.vy * dt; e.z += e.vz * dt; e.dx = e.vx; e.dz = e.vz; e.pt -= dt;
@@ -4774,6 +4806,7 @@ function updateEnemies(dt) {
       }
       return;
     }
+    if (e.kind === 'ufo') return; /* UFOは、さわってもダメージなし */
     if (e.mode === 'slide' && e.kickCd > 0) return;
     if (e.kind === 'kurage') sfx('zap');
     hurt();
@@ -6742,9 +6775,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.9', GAME_DATE = '2026-11-26', GEN_VER = 6;
+const GAME_VER = '4.10', GAME_DATE = '2026-11-26', GEN_VER = 6;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.10', t: ['パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)', 'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています', 'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます', 'サンダーは、ねらった先に空中の敵がいると、地面に下りずに、ねらった方向へ直進します', '雷を落とす雲は、ゆっくり動くようになり、落とす前の予告も長くなりました。予告のあいだは、その場でとまります'] },
   { v: '4.9', t: ['ゲームオーバーのとき、直前15秒のプレイ動画ができて、Xなどに動画つきでシェアできます（スマホは共有メニューから、パソコンは保存して追加）。設定で録画を切ることもできます', 'ゲームの途中経過が自動で保存されます。もどってきたら、タイトルの「つづきから」で、そのステージの最初から再開できます', 'ボス戦でミスしても、ライフが残っていれば、ボスの状態はそのまま、ボス戦の入口から再開します', 'ボス戦では、ザコ敵が出てこなくなりました'] },
   { v: '4.8', t: ['新しいパワー「サンダー」: 電気の玉が、だんだん速くなって飛びます。当たった敵のとなりへ、感電が次々に広がります', 'スーパーアタック: 90秒でゲージがたまり(敵を1体倒すごとに1秒短く)、自分の状態に合わせた大技が出せます', 'アイテムを1個だけストックできます(Xキー / 右上をタップで使う)', 'パワーがあるときにダメージを受けても、まず大きい状態にもどるだけになりました', 'ムチでコインが取れます。正体をあらわす前のにせコインも、ムチやパワーで倒せます', 'かくし部屋に、パワーを1つえらべる部屋がふえました', 'ボス(中ボス以外)の体力を、およそ4分の3にしました。どの敵・どの状態にも、パワーが効くようになりました', '空・地面・水・毒・マグマの絵や、木や岩などの飾りを、たくさん新しくしました'] },
   { v: '4.7', t: ['ボス戦中に、画面の左上に「たおしかた」(パワーなしでの倒しかた)が出るようになりました', 'ファイア・アイス・ムチなどでも、どのボスにも少しダメージが入ります(ユキダルマンにアイスは回復のまま)', 'ダイオウダコは、触手のたたきつけのあとに頭をふむと、パワーなしでも触手を切れます', 'ボスの出る確率が、ドラゴ大魔王(100面)をのぞいて、ぜんぶ同じになりました'] },
@@ -7239,7 +7273,7 @@ function resetPlayer(u, keep) {
   P.star = 0; P.boots = 0; P.cape = 0; P.mini = 0; P.magnet = 0; P.sticky = 0; P.dashT = 0; P.lift = 0; P.sink = 0; P.inSand = false; P.superN = 0; P.bubbleBoost = false; P.poisonT = 0; P.combo = 0; P.inWater = false; P.splashed = false;
   if (!keep) P.barrier = false;
   setSize(); P.eye = P.state > 0 ? 1.62 : 0.85;
-  P.yaw = yawOf(s); P.pitch = 0; P.invuln = 0; P.dead = false; P.deadT = 0; P.onGround = false; P.jumping = false; P.fireCd = 0; P.kick = 0; P.fov = baseFov; P.stun = 0; P.gy = 0; jumpBuf = 0;
+  P.yaw = yawOf(s); P.pitch = 0; P.invuln = 0; P.dead = false; P.deadT = 0; P.onGround = false; P.jumping = false; P.fireCd = 0; P.kick = 0; P.fov = baseFov; P.stun = 0; P.held = 0; P.gy = 0; jumpBuf = 0; PH.length = 0; PH_T = 0;
   S.inBonus = false; S.slowT = 0; S.ink = 0;
   /* スーパーアタックのゲージは、ミス・ステージクリアで、からにもどる */
   saReset(); saClear();
@@ -7489,11 +7523,20 @@ app.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 document.addEventListener('visibilitychange', function () { if (document.hidden) { releaseTouch(); pauseGame(); } });
 
 /* ================= main loop ================= */
+/* 1.5秒前のプレイヤーの位置。パックンフラワーの火の玉は、いまの位置ではなく、ここをねらう */
+const PH = []; let PH_T = 0;
+function phPush(dt) { PH_T += dt; PH.push({ t: PH_T, x: P.x, y: P.y, z: P.z }); while (PH.length > 2 && PH[1].t < PH_T - 3) PH.shift(); }
+function pastPos(sec) {
+  if (!PH.length) return { x: P.x, y: P.y, z: P.z };
+  const want = PH_T - sec; let best = PH[0];
+  for (let i = 0; i < PH.length; i++) { if (PH[i].t <= want) best = PH[i]; else break; }
+  return best;
+}
 function update(dt) {
   if (S.mode === 'play') {
     S.timeF -= dt; S.stageT += dt; if (S.timeF <= 0) { S.timeF = 0; die('time'); }
     S.slowT = Math.max(0, S.slowT - dt); S.ink = Math.max(0, S.ink - dt);
-    updatePlayer(dt); saTick(dt);
+    updatePlayer(dt); phPush(dt); saTick(dt);
     if (S.mode === 'play') updateGims(dt);
     updateBlocks(dt); updateItems(dt); updateEnemies(dt); updateShots(dt); updateFire(dt); updateBarriers(dt);
     if (S.mode === 'play') checkPickups(dt);
