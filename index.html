@@ -667,6 +667,10 @@ const DICT = {
 };
 /* 4.9 で足した文 */
 Object.assign(DICT.en, {
+  'ゼリーキング(スライムキング)の分裂した子スライムに、攻撃が効かない・すりぬけてしまう不具合を直しました': "Fixed Jelly King's split slimes being unhittable and harmless (you passed straight through them).",
+  'ファイア・アイス・ムチ・サンダーの通常攻撃が、すべてのボス・中ボスにしっかりダメージを与えるようになりました(弱点のときはさらに大ダメージ)': 'Fire, Ice, Whip and Thunder now deal real damage to every boss and mini-boss (extra damage when they are vulnerable).',
+  'ユキダルマンにアイスを当てても回復しなくなりました(少しずつダメージが入ります)': 'Ice no longer heals Snowman King; it now chips away at him.',
+  'ブレスで息切れしたら頭をふむと雪が1段へる。さいごは頭をふむ。ファイア・ムチでもとける(アイスは少しずつダメージ)': 'Stomp the head when he is out of breath to melt one layer of snow; finish by stomping the head. Fire and Whip melt him too (Ice only chips him).',
   'トゲゾーを投げてくる雲は、1.5秒前にいた場所をねらうようになりました。投げる間隔も長くなり、トゲゾーは着地してから3秒は追いかけてきません': 'The cloud that throws spiky shells now aims at where you were 1.5 seconds ago, throws less often, and the shells do not chase you for 3 seconds after landing',
   'パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)': 'Fire Plants now aim at where you were 1.5 seconds ago, not where you are now',
   'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています': 'Crows are slower, stay on the attack longer, and are a bit bigger, so they are easier to hit',
@@ -4880,7 +4884,7 @@ function bossDirTo(e, x, z) { const dx = x - e.x, dz = z - e.z, d = Math.hypot(d
 function bossTopHit(e) { return P.vy < 0 && P.y > e.y + e.h * 0.5; }
 function bossHurtPlayer(e, k) { if (P.invuln <= 0 && hurt()) knockFrom(e, k || 8); }
 /* ファイア・アイス・ムチなどのパワーでも、しかけを使わずに少しだけダメージが入る(初見で詰まらないように)。ふみつけ1回=1.0 に対して 0.2 */
-const BOSS_CHIP = 0.2;
+const BOSS_CHIP = 0.3;
 function bossChip(e, n) {
   if (e.hitCd > 0 || e.dead) return false;
   e.hitCd = 0.4; e.flash = 0.2; e.hp -= (n === undefined ? BOSS_CHIP : n); sfx('stomp');
@@ -4893,7 +4897,7 @@ const BOSS_TIP = {
   kodora: 'ふんづけてたおす。ファイアなどでもOK',
   dorago: 'ふらふらのとき(着地・ブレスのあと)に頭をふむ。ファイアなどでも少しダメージ',
   morinonushi: 'とっしんを大木にぶつけさせる。目を回したら頭をふむ(3回)',
-  yukidaruman: 'ブレスで息切れしたら頭をふむと雪が1段へる。さいごは頭をふむ。ファイア・ムチでもとける(アイスは回復)',
+  yukidaruman: 'ブレスで息切れしたら頭をふむと雪が1段へる。さいごは頭をふむ。ファイア・ムチでもとける(アイスは少しずつダメージ)',
   jelly_king: 'ふむと分裂する。小さくなるまで ぜんぶふむ(合計5回)',
   yoroinaito: '剣をふりおろすと、天井のシャンデリアが落ちる。ナイトの上に落として鎧をくずし、兜をふむ(3回)',
   bakudan_king: 'とんでくるボムをけり返す。ころんだら頭をふむ',
@@ -5054,7 +5058,7 @@ BOSS_IMPL.morinonushi = {
   },
   hit: function (e, type, dmg) {
     if (!isPowType(type)) return false;
-    if (e.state === 'stun') { if (e.hitCd <= 0) { e.hitCd = 0.3; e.flash = 0.2; e.hp -= 0.34 * (dmg || 1); sfx('stomp'); if (e.hp <= 0) { e.hp = 0; defeat(e); } } }
+    if (e.state === 'stun') { if (e.hitCd <= 0) { e.hitCd = 0.3; e.flash = 0.2; e.hp -= 0.5 * (dmg || 1); sfx('stomp'); if (e.hp <= 0) { e.hp = 0; defeat(e); } } }
     else bossChip(e, BOSS_CHIP * (dmg || 1));
     return true;
   },
@@ -5176,8 +5180,8 @@ BOSS_IMPL.yukidaruman = {
     /* 頭だけになったら、どのパワーでもとどめ */
     if (e.state === 'head') { burst(e.x, e.y + 0.5, e.z, 0xffffff, 14, 5, 0.18, 0.6); e.hp = 0; defeat(e); return true; }
     if (type === 'ice') {
-      /* アイスは回復してしまう */
-      if (e.snow < 3) { e.snow++; BOSS_IMPL.yukidaruman.shape(e); burst(e.x, e.y + 1, e.z, 0xbdf2ff, 10, 3, 0.16, 0.5); sfx('freeze'); toast(T('アイスは ユキダルマンを回復させてしまう!'), 1500); }
+      /* アイスは雪をとかせないが、冷えて少しずつダメージが入る */
+      burst(e.x, e.y + 1, e.z, 0xbdf2ff, 6, 3, 0.14, 0.4); e.hitCd = 0; bossChip(e, BOSS_CHIP * (dmg || 1));
       return true;
     }
     /* ファイア1発で雪が1段。ムチは2段、スーパーアタックは6段ぶん(頭までとどけば、そのまま倒れる) */
@@ -5225,6 +5229,8 @@ BOSS_IMPL.jelly_king = {
 function jellyParent() { return S.boss && S.boss.bid === 'jelly_king' ? S.boss : null; }
 function jellyStep(e, dt, big) {
   const L = bossLoop(), g = e.gen;
+  /* 分裂した子は、ここで待ち時間をへらす(へらさないと、ずっとむてきで、さわってもダメージが入らない) */
+  if (!big) { e.flash = Math.max(0, (e.flash || 0) - dt); e.hitCd = Math.max(0, (e.hitCd || 0) - dt); e.inv = Math.max(0, (e.inv || 0) - dt); }
   const to = bossDirTo(e, P.x, P.z);
   e.pt -= dt;
   if (e.state === 'idle') {
@@ -5554,7 +5560,7 @@ BOSS_IMPL.yoroinaito = {
     if (!e.armor) return;
     bossHurtPlayer(e, 8);
   },
-  hit: function (e, type, dmg) { return softHit(e, type, !e.armor, 0.34 * (dmg || 1), dmg); },
+  hit: function (e, type, dmg) { return softHit(e, type, !e.armor, 0.5 * (dmg || 1), dmg); },
   whip: function (e, fx, fz) {
     (e.chands || []).forEach(function (c) { const dx = c.x - P.x, dz = c.z - P.z, d = Math.hypot(dx, dz); if (c.st === 'hang' && d < 4.6 && (dx * fx + dz * fz) / (d || 1) > 0.6) BOSS_IMPL.yoroinaito.dropChand(c); });
   },
@@ -5633,7 +5639,7 @@ BOSS_IMPL.bakudan_king = {
     if (bossTopHit(e)) { stompBounce(); if (e.state === 'down') { e.inv = 1; if (!bossDmg(e, 1)) { e.state = 'walk'; e.cd = 1.4; } } else sfx('bump'); return; }
     bossHurtPlayer(e, 8);
   },
-  hit: function (e, type, dmg) { return softHit(e, type, e.state === 'down', 0.34 * (dmg || 1), dmg); },
+  hit: function (e, type, dmg) { return softHit(e, type, e.state === 'down', 0.5 * (dmg || 1), dmg); },
   anim: function (e, u) {
     const p = u.parts; if (!p || !p.body) return;
     const st = e.state, t = e.t;
@@ -5924,7 +5930,7 @@ BOSS_IMPL.thunderbird = {
     if (e.state === 'down') return;
     bossHurtPlayer(e, 8);
   },
-  hit: function (e, type, dmg) { return softHit(e, type, e.state === 'down', 0.34 * (dmg || 1), dmg); },
+  hit: function (e, type, dmg) { return softHit(e, type, e.state === 'down', 0.5 * (dmg || 1), dmg); },
   anim: function (e, u) {
     const p = u.parts; if (!p || !p.body) return;
     const st = e.state, t = e.t, flying = st !== 'down' && st !== 'fall';
@@ -6777,9 +6783,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.11', GAME_DATE = '2026-11-26', GEN_VER = 6;
+const GAME_VER = '4.12', GAME_DATE = '2026-11-26', GEN_VER = 6;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.12', t: ['ゼリーキング(スライムキング)の分裂した子スライムに、攻撃が効かない・すりぬけてしまう不具合を直しました', 'ファイア・アイス・ムチ・サンダーの通常攻撃が、すべてのボス・中ボスにしっかりダメージを与えるようになりました(弱点のときはさらに大ダメージ)', 'ユキダルマンにアイスを当てても回復しなくなりました(少しずつダメージが入ります)'] },
   { v: '4.11', t: ['トゲゾーを投げてくる雲は、1.5秒前にいた場所をねらうようになりました。投げる間隔も長くなり、トゲゾーは着地してから3秒は追いかけてきません'] },
   { v: '4.10', t: ['パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)', 'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています', 'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます', 'サンダーは、ねらった先に空中の敵がいると、地面に下りずに、ねらった方向へ直進します', '雷を落とす雲は、ゆっくり動くようになり、落とす前の予告も長くなりました。予告のあいだは、その場でとまります'] },
   { v: '4.9', t: ['ゲームオーバーのとき、直前15秒のプレイ動画ができて、Xなどに動画つきでシェアできます（スマホは共有メニューから、パソコンは保存して追加）。設定で録画を切ることもできます', 'ゲームの途中経過が自動で保存されます。もどってきたら、タイトルの「つづきから」で、そのステージの最初から再開できます', 'ボス戦でミスしても、ライフが残っていれば、ボスの状態はそのまま、ボス戦の入口から再開します', 'ボス戦では、ザコ敵が出てこなくなりました'] },
