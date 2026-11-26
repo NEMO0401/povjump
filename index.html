@@ -667,6 +667,7 @@ const DICT = {
 };
 /* 4.9 で足した文 */
 Object.assign(DICT.en, {
+  '図鑑(zukan.html)の各キャラに「3Dで見る」ボタンを追加しました。動きながら、ドラッグで好きな角度から見たり、ズームしたりできます': "Added a “View in 3D” button to every entry in the Bestiary (zukan.html). Watch them move, drag to look from any angle, and zoom in.",
   'ゼリーキング(スライムキング)の分裂した子スライムに、攻撃が効かない・すりぬけてしまう不具合を直しました': "Fixed Jelly King's split slimes being unhittable and harmless (you passed straight through them).",
   'ファイア・アイス・ムチ・サンダーの通常攻撃が、すべてのボス・中ボスにしっかりダメージを与えるようになりました(弱点のときはさらに大ダメージ)': 'Fire, Ice, Whip and Thunder now deal real damage to every boss and mini-boss (extra damage when they are vulnerable).',
   'ユキダルマンにアイスを当てても回復しなくなりました(少しずつダメージが入ります)': 'Ice no longer heals Snowman King; it now chips away at him.',
@@ -6783,9 +6784,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.12', GAME_DATE = '2026-11-26', GEN_VER = 6;
+const GAME_VER = '4.13', GAME_DATE = '2026-11-26', GEN_VER = 6;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.13', t: ['図鑑(zukan.html)の各キャラに「3Dで見る」ボタンを追加しました。動きながら、ドラッグで好きな角度から見たり、ズームしたりできます'] },
   { v: '4.12', t: ['ゼリーキング(スライムキング)の分裂した子スライムに、攻撃が効かない・すりぬけてしまう不具合を直しました', 'ファイア・アイス・ムチ・サンダーの通常攻撃が、すべてのボス・中ボスにしっかりダメージを与えるようになりました(弱点のときはさらに大ダメージ)', 'ユキダルマンにアイスを当てても回復しなくなりました(少しずつダメージが入ります)'] },
   { v: '4.11', t: ['トゲゾーを投げてくる雲は、1.5秒前にいた場所をねらうようになりました。投げる間隔も長くなり、トゲゾーは着地してから3秒は追いかけてきません'] },
   { v: '4.10', t: ['パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)', 'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています', 'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます', 'サンダーは、ねらった先に空中の敵がいると、地面に下りずに、ねらった方向へ直進します', '雷を落とす雲は、ゆっくり動くようになり、落とす前の予告も長くなりました。予告のあいだは、その場でとまります'] },
@@ -7572,10 +7574,147 @@ function boot() {
   showOverlay('title');
 }
 try { setTouch(!!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)); } catch (e) {}
+/* ================= 図鑑ビューア(?view=敵のID): 敵・ボスを、動かしながら好きな角度でながめる(zukan.html から使う) ================= */
+const VIEW = (function () { try { return new URLSearchParams(location.search).get('view'); } catch (e) { return null; } })();
+const VIEW_LANG = (function () { try { const l = new URLSearchParams(location.search).get('lang'); return /^(ja|en|zh|es|hi)$/.test(l) ? l : 'ja'; } catch (e) { return 'ja'; } })();
+const VIEW_TXT = {
+  ja: { front: '正面', back: '背面', left: '左', right: '右', top: '上', auto: '自動回転', motion: '動き', hint: 'ドラッグで回転 / ホイール・ピンチでズーム', loading: '読み込み中…', fail: '読み込めませんでした', zin: 'ズーム+', zout: 'ズーム-' },
+  en: { front: 'Front', back: 'Back', left: 'Left', right: 'Right', top: 'Top', auto: 'Auto-spin', motion: 'Motion', hint: 'Drag to rotate / wheel or pinch to zoom', loading: 'Loading…', fail: 'Could not load', zin: 'Zoom +', zout: 'Zoom -' },
+  zh: { front: '正面', back: '背面', left: '左', right: '右', top: '上', auto: '自动旋转', motion: '动作', hint: '拖动旋转 / 滚轮或双指缩放', loading: '加载中…', fail: '加载失败', zin: '放大', zout: '缩小' },
+  es: { front: 'Frente', back: 'Atrás', left: 'Izq.', right: 'Der.', top: 'Arriba', auto: 'Girar solo', motion: 'Acción', hint: 'Arrastra para girar / rueda o pellizco para zoom', loading: 'Cargando…', fail: 'No se pudo cargar', zin: 'Zoom +', zout: 'Zoom -' },
+  hi: { front: 'आगे', back: 'पीछे', left: 'बायाँ', right: 'दायाँ', top: 'ऊपर', auto: 'अपने-आप घुमाओ', motion: 'हरकत', hint: 'घुमाने के लिए खींचो / ज़ूम के लिए पहिया या पिंच', loading: 'लोड हो रहा है…', fail: 'लोड नहीं हो सका', zin: 'ज़ूम +', zout: 'ज़ूम -' }
+};
+/* 敵ごとの「動き」の切りかえ(ボスは BOSS_IMPL.anim の中の state 名から自動で集める) */
+const VIEW_MODES = {
+  gdango: [{ mode: 'walk' }, { mode: 'shell' }, { mode: 'slide' }], rdango: [{ mode: 'walk' }, { mode: 'shell' }, { mode: 'slide' }], pata: [{ mode: 'walk' }, { mode: 'shell' }, { mode: 'slide' }],
+  toge: [{ mode: 'walk' }, { mode: 'egg' }], mimic: [{ mode: 'coin' }, { mode: 'walk' }], fplant: [{ ph: 'idle' }, { ph: 'wind' }]
+};
+function viewStates(bid, tier) {
+  let list = [];
+  if (bid && BOSS_IMPL[bid] && BOSS_IMPL[bid].anim) {
+    const src = String(BOSS_IMPL[bid].anim), re = /(?:\bst\b|\be\.state|\bstate)\s*===\s*'(\w+)'/g; let m;
+    while ((m = re.exec(src))) if (list.indexOf(m[1]) < 0) list.push(m[1]);
+    (src.match(/\[([^\]]*)\]\.indexOf\((?:st|e\.state)\)/g) || []).forEach(function (q) { (q.match(/'(\w+)'/g) || []).forEach(function (w) { w = w.replace(/'/g, ''); if (list.indexOf(w) < 0) list.push(w); }); });
+  }
+  if (!list.length) list = tier === 'boss' ? ['idle', 'wind', 'breath', 'recover'] : ['walk', 'wind', 'breath'];
+  list = list.filter(function (x) { return x !== 'dead' && x !== 'dying'; });
+  if (list.indexOf('idle') < 0 && list.indexOf('walk') < 0) list.unshift('idle');
+  return list.map(function (x) { return { state: x }; });
+}
+function startViewer() {
+  const T = VIEW_TXT[VIEW_LANG];
+  document.body.classList.add('viewmode');
+  const st = document.createElement('style');
+  st.textContent = 'body.viewmode #app>*:not(canvas){display:none!important}body.viewmode canvas{touch-action:none;cursor:grab}' +
+    '#vwui{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;padding:8px;background:linear-gradient(transparent,rgba(10,16,40,.8));font:13px system-ui,sans-serif;color:#fff;z-index:50}' +
+    '#vwui button{background:#243060;color:#fff;border:2px solid #4a5aa0;border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer}#vwui button.on{background:#ffc93c;color:#2a2000;border-color:#ffc93c;font-weight:700}' +
+    '#vwui .vwhint{width:100%;text-align:center;opacity:.85;font-size:12px}#vwmsg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font:16px system-ui;z-index:40;pointer-events:none}';
+  document.head.appendChild(st);
+  const msg = document.createElement('div'); msg.id = 'vwmsg'; msg.textContent = T.loading; document.body.appendChild(msg);
+  hud.hidden = true; ov.hidden = true;
+  S.mode = 'view';
+  worldGroup = new THREE.Group(); scene.add(worldGroup);
+  scene.background = new THREE.Color(0x9ccbf0); scene.fog = null;
+  P.x = P.z = 0; P.y = 0;
+  /* 図鑑のID → ゲームの敵 */
+  const isBoss = !!(BOSSES[VIEW] || (typeof BOSS_IMPL !== 'undefined' && BOSS_IMPL[VIEW]));
+  /* 地形に頼る敵(かべのくも・ゴロンボなど)のための、まっすぐな道 */
+  PATH = { segs: [{ u0: 0, u1: 1e9, x: 0, z: 0, fx: 0, fz: -1, rx: 1, rz: 0, y: 0 }] };
+  let e;
+  try {
+    if (isBoss) {
+      const tier = (BOSSES[VIEW] && BOSSES[VIEW].tier) || 'boss';
+      e = spawnEnemy(tier === 'mini' ? 'mini' : 'boss', 0, 0, { bid: VIEW });
+    } else if (DEF[VIEW]) e = spawnEnemy(VIEW, 0, 0, { top: 1.4, host: null });
+  } catch (err) { e = null; }
+  if (!e) { msg.textContent = T.fail; return; }
+  msg.remove();
+  e.x = 0; e.z = 0; e.dx = 0; e.dz = 1; e.active = false; e.harmless = true; e.frozen = 0; e.shock = 0; e.dead = false; e.flash = 0; e.hitCd = 0; e.inv = 0;
+  /* かくれている敵は、出てきた姿にする */
+  const FIX = { jfish: { mode: 'jump', y: 0.8, vy: 2 }, ika: { mode: 'up', y: 0.1 }, hinotama: { mode: 'jump', y: 0.5, vy: 3 }, gabu: { y: 1.4 }, mimic: { y: 0.02 }, kaiga: { wx: 0, wz: 1 } }[VIEW] || {};
+  const applyFix = function () { for (const k in FIX) e[k] = FIX[k]; };
+  applyFix();
+  const modes = VIEW_MODES[VIEW] || (isBoss ? viewStates(VIEW, (BOSSES[VIEW] && BOSSES[VIEW].tier) || 'boss') : [{}]);
+  let mi = 0, autoMotion = modes.length > 1, motionT = 0;
+  function applyMode() { const o = modes[mi] || {}; if (o.state) e.state = o.state; if (o.mode) e.mode = o.mode; if (o.ph) e.ph = o.ph; e.t = 0; }
+  applyMode();
+  /* 床 */
+  const floorR = 4;
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(floorR, 48), new THREE.MeshLambertMaterial({ color: 0xcfe8c0 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; worldGroup.add(floor);
+  /* 大きさに合わせて、カメラの距離をきめる */
+  const box = new THREE.Box3();
+  function measure() { box.setFromObject(e.mesh); }
+  animate(0.016, 0); measure();
+  const size = new THREE.Vector3(), ctr = new THREE.Vector3(); box.getSize(size); box.getCenter(ctr);
+  const rad = Math.max(0.35, Math.min(14, Math.max(size.x, size.y, size.z) * 0.5));
+  floor.scale.setScalar(Math.max(0.5, rad / 2.2)); 
+  const fov = 38; camera.fov = fov; camera.updateProjectionMatrix();
+  const asp0 = Math.max(0.4, innerWidth / Math.max(1, innerHeight)), hf = 2 * Math.atan(Math.tan(fov * Math.PI / 360) * asp0);
+  const d0 = rad / Math.tan(Math.min(fov * Math.PI / 180, hf) / 2) * 1.85;
+  const tgt = new THREE.Vector3(0, Math.max(0.2, ctr.y), 0);
+  const cam = { yaw: 0.5, pitch: 0.22, dist: d0, tyaw: null, tpitch: null };
+  let auto = true, vt = 0;
+  const cv = renderer.domElement;
+  /* ドラッグで回転、ホイール・ピンチでズーム */
+  const ptrs = {}; let pinch0 = 0, dist00 = 0;
+  function clampDist() { cam.dist = Math.max(d0 * 0.3, Math.min(d0 * 3.2, cam.dist)); }
+  cv.addEventListener('pointerdown', function (ev) { ev.preventDefault(); ev.stopPropagation(); try { cv.setPointerCapture(ev.pointerId); } catch (x) {} ptrs[ev.pointerId] = { x: ev.clientX, y: ev.clientY }; cam.tyaw = null; setAuto(false); const ks = Object.keys(ptrs); if (ks.length === 2) { pinch0 = Math.hypot(ptrs[ks[0]].x - ptrs[ks[1]].x, ptrs[ks[0]].y - ptrs[ks[1]].y); dist00 = cam.dist; } }, true);
+  cv.addEventListener('pointermove', function (ev) {
+    const p = ptrs[ev.pointerId]; if (!p) return; ev.preventDefault(); ev.stopPropagation();
+    const ks = Object.keys(ptrs);
+    if (ks.length >= 2) { p.x = ev.clientX; p.y = ev.clientY; const d = Math.hypot(ptrs[ks[0]].x - ptrs[ks[1]].x, ptrs[ks[0]].y - ptrs[ks[1]].y); if (pinch0 > 0 && d > 0) { cam.dist = dist00 * pinch0 / d; clampDist(); } return; }
+    cam.yaw -= (ev.clientX - p.x) * 0.01; cam.pitch = Math.max(-0.2, Math.min(1.4, cam.pitch + (ev.clientY - p.y) * 0.008)); p.x = ev.clientX; p.y = ev.clientY;
+  }, true);
+  function up(ev) { delete ptrs[ev.pointerId]; pinch0 = 0; }
+  cv.addEventListener('pointerup', up, true); cv.addEventListener('pointercancel', up, true);
+  cv.addEventListener('wheel', function (ev) { ev.preventDefault(); cam.dist *= Math.exp(ev.deltaY * 0.0012); clampDist(); }, { passive: false });
+  cv.addEventListener('click', function (ev) { ev.stopPropagation(); }, true);
+  /* ボタン */
+  const ui = document.createElement('div'); ui.id = 'vwui';
+  const views = [['front', 0, 0.22], ['back', Math.PI, 0.22], ['left', -Math.PI / 2, 0.22], ['right', Math.PI / 2, 0.22], ['top', 0, 1.35]];
+  let h = '<div class="vwhint">' + T.hint + '</div>';
+  views.forEach(function (v) { h += '<button data-v="' + v[0] + '">' + T[v[0]] + '</button>'; });
+  h += '<button data-a="1" class="on">' + T.auto + '</button><button data-z="-1">' + T.zin + '</button><button data-z="1">' + T.zout + '</button>';
+  if (modes.length > 1) h += '<button data-m="-1">◀</button><span id="vwm">' + T.motion + ' 1/' + modes.length + '</span><button data-m="1">▶</button>';
+  ui.innerHTML = h; document.body.appendChild(ui);
+  function setAuto(on) { auto = on; const b = ui.querySelector('[data-a]'); if (b) b.classList.toggle('on', on); }
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { try { parent.postMessage({ povjump: 'close' }, '*'); } catch (x) {} } });
+  function angDiff(a, b) { let d = (b - a) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; }
+  ui.addEventListener('click', function (ev) {
+    const b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.v) { const v = views.filter(function (q) { return q[0] === b.dataset.v; })[0]; setAuto(false); cam.tyaw = cam.yaw + angDiff(cam.yaw, v[1]); cam.tpitch = v[2]; }
+    else if (b.dataset.a) setAuto(!auto);
+    else if (b.dataset.z) { cam.dist *= b.dataset.z === '1' ? 1.25 : 0.8; clampDist(); }
+    else if (b.dataset.m) { mi = (mi + (+b.dataset.m) + modes.length) % modes.length; autoMotion = false; applyMode(); }
+  });
+  function viewFrame(now) {
+    requestAnimationFrame(viewFrame);
+    let dt = (now - last) / 1000; last = now; if (!(dt > 0)) dt = 0; if (dt > 0.1) dt = 0.1;
+    clockT += dt; vt += dt;
+    if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    e.t += dt; e.pt = 1.2 - (e.t % 1.2); e.x = 0; e.z = 0; e.dx = 0; e.dz = 1;
+    applyFix(); if (VIEW === 'mimic') e.y = e.mode === 'coin' ? 0.6 : 0.02;
+    if (autoMotion) { motionT += dt; if (motionT > 3.2) { motionT = 0; mi = (mi + 1) % modes.length; applyMode(); } }
+    const mm = document.getElementById('vwm'); if (mm) mm.textContent = T.motion + ' ' + (mi + 1) + '/' + modes.length;
+    animate(dt, clockT);
+    if (auto) cam.yaw += dt * 0.5;
+    if (cam.tyaw !== null) { const k = Math.min(1, dt * 8); cam.yaw += (cam.tyaw - cam.yaw) * k; cam.pitch += (cam.tpitch - cam.pitch) * k; if (Math.abs(cam.tyaw - cam.yaw) < 0.002) cam.tyaw = null; }
+    camera.position.set(tgt.x + Math.sin(cam.yaw) * Math.cos(cam.pitch) * cam.dist, tgt.y + Math.sin(cam.pitch) * cam.dist, tgt.z + Math.cos(cam.yaw) * Math.cos(cam.pitch) * cam.dist);
+    camera.lookAt(tgt);
+    const W = innerWidth, H = innerHeight; camera.setViewOffset(W, H, 0, Math.round(H * 0.11), W, H);
+    renderer.render(scene, camera);
+  }
+  window.__V = { e: e, cam: cam, modes: modes, setMode: function (i) { mi = i; autoMotion = false; applyMode(); } };
+  requestAnimationFrame(viewFrame);
+}
 applyStatic();
+if (VIEW) { loadModels().then(startViewer); }
+else {
 loadRun();
 boot();
 loadModels().then(function () { if (S.mode === 'title') boot(); });
+}
 
 let last = performance.now(), acc = 0;
 /* 撮影モード: 動画用に1コマずつ決まった時間だけ進めて描く(普段は使わない) */
@@ -7606,7 +7745,7 @@ function frame(now) {
   renderer.render(scene, camera);
   recCapture(now);
 }
-requestAnimationFrame(frame);
+if (!VIEW) requestAnimationFrame(frame);
 })();
 </script>
 </body>
