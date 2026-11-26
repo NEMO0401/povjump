@@ -667,6 +667,7 @@ const DICT = {
 };
 /* 4.9 で足した文 */
 Object.assign(DICT.en, {
+  'トゲゾーを投げてくる雲は、1.5秒前にいた場所をねらうようになりました。投げる間隔も長くなり、トゲゾーは着地してから3秒は追いかけてきません': 'The cloud that throws spiky shells now aims at where you were 1.5 seconds ago, throws less often, and the shells do not chase you for 3 seconds after landing',
   'パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)': 'Fire Plants now aim at where you were 1.5 seconds ago, not where you are now',
   'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています': 'Crows are slower, stay on the attack longer, and are a bit bigger, so they are easier to hit',
   'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます': 'UFOs no longer hurt you. They only lift you into the air and hold you still for about 3 seconds. They fly lower now, so you can stomp them',
@@ -4402,10 +4403,11 @@ function stepBoss(e, dt) {
 function throwEgg(c) {
   const gy = P.gy, ty = Math.max(0, c.y - gy), vy = 5.5;
   const tf = (vy + Math.sqrt(vy * vy + 64 * ty)) / 32;
-  const tx = P.x + P.vx * tf * 0.6 + (Math.random() - 0.5) * 2.4, tz = P.z + P.vz * tf * 0.6 + (Math.random() - 0.5) * 2.4;
+  const pp = pastPos(1.5); /* いまの位置や動く先ではなく、1.5秒前にいた場所をねらう */
+  const tx = pp.x + (Math.random() - 0.5) * 2.4, tz = pp.z + (Math.random() - 0.5) * 2.4;
   const eg = spawnEnemy('toge', c.x, c.z, null);
   eg.y = c.y + 0.3; eg.mode = 'egg'; eg.active = true; eg.spawned = true; eg.vy = vy;
-  eg.vx = clamp((tx - c.x) / tf, -14, 14); eg.vz = clamp((tz - c.z) / tf, -14, 14);
+  eg.vx = clamp((tx - c.x) / tf, -24, 24); eg.vz = clamp((tz - c.z) / tf, -24, 24);
   let n = 0; for (let i = enemies.length - 1; i >= 0; i--) if (enemies[i].spawned && !enemies[i].dead) { n++; if (n > 4) enemies[i].remove = true; }
   sfx('kick');
 }
@@ -4529,7 +4531,7 @@ function stepEnemy(e, dt) {
       const tw = c2w(tu, clamp(pc.x + Math.sin(e.t * 0.9) * 3.5, -6, 6), s), ty = P.gy + 2.5;
       e.z = approach(e.z, tw[1], 6 * dt); e.x = approach(e.x, tw[0], 6 * dt); e.y = approach(e.y, ty, 3 * dt);
       e.thr -= dt;
-      if (e.thr <= 0 && dist < 16 && pu > e.u0 - 6 && pu < e.u1 + 6) { throwEgg(e); e.thr = Math.max(2.2, 3.4 - 0.9 * Math.min(1, S.stage / 15)) + Math.random() * 0.6; }
+      if (e.thr <= 0 && dist < 16 && pu > e.u0 - 6 && pu < e.u1 + 6) { throwEgg(e); e.thr = Math.max(3.2, 4.4 - 0.9 * Math.min(1, S.stage / 15)) + Math.random() * 0.8; }
       return;
     }
     case 'bonbori': {
@@ -4714,7 +4716,7 @@ function stepEnemy(e, dt) {
     moveBody(e, dt);
     if (e.onGround) {
       e.mode = 'walk';
-      const ddx = P.x - e.x, ddz = P.z - e.z, dd = Math.hypot(ddx, ddz) || 1; e.dx = ddx / dd; e.dz = ddz / dd;
+      const ddx = P.x - e.x, ddz = P.z - e.z, dd = Math.hypot(ddx, ddz) || 1; e.dx = ddx / dd; e.dz = ddz / dd; e.noHome = 3; /* 着地して3秒は、追いかけない */
       burst(e.x, e.y + 0.1, e.z, 0xd9c2ff, 4, 2, 0.1, 0.3);
     }
     return;
@@ -6775,9 +6777,10 @@ function updateHud() {
 function track(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) {} }
 /* ================= バージョン ================= */
 /* 更新のたびに上げる。GEN_VER はステージの作り方が変わったときだけ上げる(ちょうせんリンクの互換のため) */
-const GAME_VER = '4.10', GAME_DATE = '2026-11-26', GEN_VER = 6;
+const GAME_VER = '4.11', GAME_DATE = '2026-11-26', GEN_VER = 6;
 /* 更新内容(新しいものを先頭に)。前回遊んだときより新しいバージョンなら、タイトルに「アップデートしました」を出す */
 const CHANGELOG = [
+  { v: '4.11', t: ['トゲゾーを投げてくる雲は、1.5秒前にいた場所をねらうようになりました。投げる間隔も長くなり、トゲゾーは着地してから3秒は追いかけてきません'] },
   { v: '4.10', t: ['パックンフラワーの火の玉は、1.5秒前にいた場所をねらうようになりました(いまの場所をねらい打ちしません)', 'カラスがゆっくりになり、ぶつかってくる時間も長くなりました。体も少し大きくなり、当てやすくなっています', 'UFOは、さわってもダメージを受けなくなりました。空中に吸い上げて、3秒ほど動けなくするだけです。ひくくなったので、ふんづけて倒せます', 'サンダーは、ねらった先に空中の敵がいると、地面に下りずに、ねらった方向へ直進します', '雷を落とす雲は、ゆっくり動くようになり、落とす前の予告も長くなりました。予告のあいだは、その場でとまります'] },
   { v: '4.9', t: ['ゲームオーバーのとき、直前15秒のプレイ動画ができて、Xなどに動画つきでシェアできます（スマホは共有メニューから、パソコンは保存して追加）。設定で録画を切ることもできます', 'ゲームの途中経過が自動で保存されます。もどってきたら、タイトルの「つづきから」で、そのステージの最初から再開できます', 'ボス戦でミスしても、ライフが残っていれば、ボスの状態はそのまま、ボス戦の入口から再開します', 'ボス戦では、ザコ敵が出てこなくなりました'] },
   { v: '4.8', t: ['新しいパワー「サンダー」: 電気の玉が、だんだん速くなって飛びます。当たった敵のとなりへ、感電が次々に広がります', 'スーパーアタック: 90秒でゲージがたまり(敵を1体倒すごとに1秒短く)、自分の状態に合わせた大技が出せます', 'アイテムを1個だけストックできます(Xキー / 右上をタップで使う)', 'パワーがあるときにダメージを受けても、まず大きい状態にもどるだけになりました', 'ムチでコインが取れます。正体をあらわす前のにせコインも、ムチやパワーで倒せます', 'かくし部屋に、パワーを1つえらべる部屋がふえました', 'ボス(中ボス以外)の体力を、およそ4分の3にしました。どの敵・どの状態にも、パワーが効くようになりました', '空・地面・水・毒・マグマの絵や、木や岩などの飾りを、たくさん新しくしました'] },
